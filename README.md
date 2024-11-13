@@ -78,3 +78,30 @@
 | Task       | Status |
 |------------|--------|
 | Backward   |   ✅   |
+
+### Loss Functions
+
+| Task      | Status |
+|-----------|--------|
+| MSE       |   ❌   |
+| CE        |   ❌   |
+| BCE       |   ❌   |
+| SoftmaxCE |   ❌   |
+
+### Optimizers
+
+| Task  | Status |
+|-------|--------|
+| ADAM  |   ❌   |
+
+### Layers
+
+| Task       | Status |
+|------------|--------|
+| SEQUENTIAL |   ❌   |
+| LINEAR     |   ❌   |
+| DROPOUT    |   ❌   |
+| CONV2D     |   ❌   |
+| CONV3D     |   ❌   |
+| MAXPOOL2D  |   ❌   |
+| MAXPOOL3D  |   ❌   |
