@@ -35,12 +35,26 @@ This repository includes setup instructions, usage examples, and documentation t
 NanoTorch is open for contributions! Whether you’re fixing bugs, adding new features, or experimenting with optimizations, we welcome your input.
 
 
-# Progress
+# Progress and Roadmap
+
+NanoTorch is designed to provide an accessible, low-level deep learning framework with a focus on simplicity and modularity. Here’s a roadmap showcasing its primary components and future progress milestones:
+
+## Core Components
 
 ❌: Not implemented  
 ✅: Done
 
-### Operators
+
+### Tensor Operators
+
+-    Tensor Creation and Manipulation: Support for tensor creation with various data types (float, double, int) and shapes.
+
+| Task       | Status |
+|------------|--------|
+| Tensor     |   ✅   |
+
+-    Basic Tensor Math: Essential operations like addition, multiplication, scaling, and dot products.
+-    Memory Management: Efficient use of malloc, calloc, memcpy, and memset for optimized memory handling.
 
 | Task       | Status |
 |------------|--------|
