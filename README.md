@@ -45,16 +45,15 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 ✅: Done
 
 
-### Tensor Operators
+1.	Tensor Operations
 
 -    Tensor Creation and Manipulation: Support for tensor creation with various data types (float, double, int) and shapes.
 
-  | Task       | Status |
-  |------------|--------|
-  | Tensor     |   ✅   |
+| Task       | Status |
+|------------|--------|
+| Tensor     |   ✅   |
 
--    Basic Tensor Math: Essential operations like addition, multiplication, scaling, and dot products.
--    Memory Management: Efficient use of malloc, calloc, memcpy, and memset for optimized memory handling.
+-    Basic Tensor Math:
 
 | Task       | Status |
 |------------|--------|
@@ -75,6 +74,18 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | MAXPOOL2D  |   ❌   |
 | MAXPOOL3D  |   ❌   |
 
+-    Memory Management: Efficient use of malloc, calloc, memcpy, and memset for optimized memory handling.
+
+| Task       | Status |
+|------------|--------|
+| Free Tensor|   ✅   |
+
+
+2.	Automatic Differentiation
+
+	•	Gradient Storage: Each tensor can store its gradient, initialized with calloc for zeroing the memory.
+	•	Backward Propagation: Simple backpropagation framework to calculate gradients for model parameters.
+	•	Operators for Gradient Tracking: Support for chaining operations to compute gradients through layers of the network.
 ### Operators Derivative
 
 | Task       | Status |
