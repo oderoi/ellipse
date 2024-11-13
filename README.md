@@ -13,18 +13,18 @@ NanoTorch is a lightweight, minimalistic deep learning library written in pure  
 
 #### Key Features
 
-	•	Lightweight Design: Focused on simplicity, NanoTorch provides core deep learning operations without heavy dependencies.
-	•	Pure C Implementation: Built entirely in C, NanoTorch is designed to be portable and optimized for low-level manipulation.
-	•	Gradient Calculation: Includes basic automatic differentiation to support backpropagation for training models.
-	•	Flexible Tensor Operations: Supports fundamental tensor operations required for deep learning.
-	•	Modular Architecture: Easy to extend or modify, allowing you to explore and experiment with new layers, optimizers, and more.
+	•Lightweight Design: Focused on simplicity, NanoTorch provides core deep learning operations without heavy dependencies.
+	•Pure C Implementation: Built entirely in C, NanoTorch is designed to be portable and optimized for low-level manipulation.
+	•Gradient Calculation: Includes basic automatic differentiation to support backpropagation for training models.
+	•Flexible Tensor Operations: Supports fundamental tensor operations required for deep learning.
+	•Modular Architecture: Easy to extend or modify, allowing you to explore and experiment with new layers, optimizers, and more.
 
 #### Who is This For?
 
 NanoTorch is perfect for those looking to:
-	•	Understand the inner workings of a deep learning library from the ground up.
-	•	Run simple neural networks in resource-limited environments.
-	•	Prototype and test custom ML operations in C.
+	• Understand the inner workings of a deep learning library from the ground up.
+	• Run simple neural networks in resource-limited environments.
+	• Prototype and test custom ML operations in C.
 
 #### Getting Started
 
