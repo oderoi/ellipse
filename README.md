@@ -1,4 +1,4 @@
-<h1 align='center'><b>Cerebrix</b></h1>
+<h1 align='center'><b>Torch</b></h1>
 <p align='center'>
     A PyTorch like AI Engine from scratch in C programming language
 </p>
