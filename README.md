@@ -49,9 +49,9 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 
 -    Tensor Creation and Manipulation: Support for tensor creation with various data types (float, double, int) and shapes.
 
-| Task       | Status |
-|------------|--------|
-| Tensor     |   ✅   |
+    | Task       | Status |
+    |------------|--------|
+    | Tensor     |   ✅   |
 
 -    Basic Tensor Math: Essential operations like addition, multiplication, scaling, and dot products.
 -    Memory Management: Efficient use of malloc, calloc, memcpy, and memset for optimized memory handling.
