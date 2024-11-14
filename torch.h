@@ -936,7 +936,7 @@ void Div_backward(Tensor *out){
         if(out->prevs[1]->requires_grad==true){
             for (int i = 0; i < out->size; i++)
             {
-                out->prevs[1]->grad.float32[i] += out->grad.float32[i] * out->prevs[0]->data.float32[i]/(out->prevs[1]->data.float32[i] * out->prevs[1]->data.float32[i]);
+                out->prevs[1]->grad.float32[i] += out->grad.float32[i] * out->prevs[0]->data.float32[i] / pow(out->prevs[1]->data.float32[i] , 2);
             }
         }
         break;
@@ -951,7 +951,7 @@ void Div_backward(Tensor *out){
         if(out->prevs[1]->requires_grad==true){
             for (int i = 0; i < out->size; i++)
             {
-                out->prevs[1]->grad.float64[i] += (out->grad.float64[i] * out->prevs[0]->data.float64[i])/(out->prevs[1]->data.float64[i] * out->prevs[1]->data.float64[i]);
+                out->prevs[1]->grad.float64[i] += (out->grad.float64[i] * out->prevs[0]->data.float64[i]) / pow(out->prevs[1]->data.float64[i] , 2);
             }  
         }
         break;    
