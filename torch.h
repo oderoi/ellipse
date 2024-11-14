@@ -40,7 +40,8 @@ typedef enum{
     SIGMOID,
     TANH,
     MEAN,
-    SOFTMAX
+    SOFTMAX,
+    DIV
 }Op;
 
 typedef enum{
@@ -835,6 +836,130 @@ void matmul_backward(Tensor * out){
             free(out);
             fprintf(stderr, "Unsupported data type \n");
             return;
+    }
+}
+
+Tensor * Div( Tensor * t1, Tensor *t2){
+    if(!t1 || !t2) return NULL;
+    if(t1->dtype != t2->dtype || t1->ndim != t2->ndim) return NULL;
+    for (int i = 0; i < t1->ndim; i++)
+    {
+        if(t1->dims[i]!= t2->dims[i]) return NULL;
+    }
+
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+
+    switch (t1->dtype)
+    {
+    case FLOAT32:
+        for (int i = 0; i < t1->size; i++)
+        {
+            t->data.float32[i] = t1->data.float32[i] / t2->data.float32[i];
+        }
+        if(!t1->requires_grad || !t2->requires_grad){
+            t->grad.float32 = (float*)calloc(t1->size, sizeof(float));
+            if(!t1->grad.float32){
+                fprintf(stderr, "Memory allocation for grad failed\n");
+                free(t->data.float32);
+                free(t->dims);
+                free(t);
+                return NULL;
+            }
+        }
+        break;
+    case FLOAT64:
+        for (int i = 0; i < t1->size; i++){
+            t->data.float64[i] = t1->data.float64[i] / t2->data.float64[i];
+        }
+        if(!t1->requires_grad || !t2->requires_grad){
+            t->grad.float64 = (double*)calloc(t1->size, sizeof(double));
+            if(!t1->grad.float64){
+                fprintf(stderr, "Memory allocation for grad failed\n");
+                free(t->data.float64);
+                free(t->dims);
+                free(t);
+                return NULL;
+            }
+        }
+        break;
+    case INT32:
+        for(int i=0; i<t1->size; i++){
+            t->data.float32[i] = t1->data.int32[i] / t2->data.int32[i];
+        }
+        if(!t1->requires_grad || !t2->requires_grad){
+            fprintf(stderr, "Only Tensors of floating point and complex dtype can require gradients\n");
+            free(t->data.float32);
+            free(t->dims);
+            free(t);
+            return NULL;
+        }
+        break;
+    case INT64:
+        for(int i=0; i<t1->size; i++){
+            t->data.float64[i] = t1->data.int64[i] / t2->data.int64[i];
+        }
+        if(!t1->requires_grad || !t2->requires_grad){
+            fprintf(stderr, "Only Tensors of floating point and complex dtype can require gradients\n");
+            free(t->data.float64);
+            free(t->dims);
+            free(t);
+            return NULL;
+        }
+        break;
+    default:
+        free(t);
+        fprintf(stderr, "Unsupported data type \n");
+        return NULL;
+        break;
+    }
+    t->op=DIV;
+    t->num_prevs=2;
+    t->prevs[0]= t1;
+    t->prevs[1]= t2;
+    t->requires_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
+    
+    return t;
+}
+
+void Div_backward(Tensor *out){
+    if(!out) return;
+
+    switch (out->dtype)
+    {
+    case FLOAT32:
+        if(out->prevs[0]->requires_grad==true){
+            for (int i = 0; i < out->size; i++)
+            {
+                out->prevs[0]->grad.float32[i] += out->grad.float32[i]/out->prevs[1]->data.float32[i]; 
+            }
+        }
+        if(out->prevs[1]->requires_grad==true){
+            for (int i = 0; i < out->size; i++)
+            {
+                out->prevs[1]->grad.float32[i] += out->grad.float32[i] * out->prevs[0]->data.float32[i]/(out->prevs[1]->data.float32[i] * out->prevs[1]->data.float32[i]);
+            }
+        }
+        break;
+
+    case FLOAT64:
+        if(out->prevs[0]->requires_grad==true){
+            for (int i = 0; i < out->size; i++)
+            {
+                out->prevs[0]->grad.float64[i] += out->grad.float64[i]/out->prevs[1]->data.float64[i]; 
+            }
+        }
+        if(out->prevs[1]->requires_grad==true){
+            for (int i = 0; i < out->size; i++)
+            {
+                out->prevs[1]->grad.float64[i] += (out->grad.float64[i] * out->prevs[0]->data.float64[i])/(out->prevs[1]->data.float64[i] * out->prevs[1]->data.float64[i]);
+            }  
+        }
+        break;    
+    default:
+        free(out);
+        fprintf(stderr, "Unsupported data type \n");
+        return;
+        break;
     }
 }
 
