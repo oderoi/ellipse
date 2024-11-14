@@ -13,7 +13,7 @@ typedef union
     double* float64;
     int32_t* int32;
     int64_t* int64;
-    // void* raw_data;
+    void* raw_data;
 } Data;
 
 typedef union
@@ -41,7 +41,8 @@ typedef enum{
     TANH,
     MEAN,
     SOFTMAX,
-    DIV
+    DIV,
+    POW
 }Op;
 
 typedef enum{
@@ -52,6 +53,7 @@ typedef enum{
 typedef struct Tensor{
     Data data;
     DType dtype;
+    double extra;
     int *dims;
     int ndim;
     int size;
@@ -91,6 +93,7 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
     t->dtype = dtype;
     t->size = total_size(dims, ndim);
     t->ndim = ndim;
+    t->extra = 0;
     t->requires_grad = requires_grad;
     t->op = -1;
     t->num_prevs = 0;
@@ -865,7 +868,11 @@ Tensor * Div( Tensor * t1, Tensor *t2){
                 free(t);
                 return NULL;
             }
+        }else
+        {
+            t->grad.float32 = NULL;
         }
+        
         break;
     case FLOAT64:
         for (int i = 0; i < t1->size; i++){
@@ -880,6 +887,8 @@ Tensor * Div( Tensor * t1, Tensor *t2){
                 free(t);
                 return NULL;
             }
+        }else{
+            t->grad.float64 = NULL;
         }
         break;
     case INT32:
@@ -963,6 +972,126 @@ void Div_backward(Tensor *out){
     }
 }
 
+Tensor* Pow(Tensor *t1, double exponent){
+    if(!t1)return NULL;
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+    if(!t) return NULL;
+    switch(t1->dtype){
+        case FLOAT32:
+            for(int i=0; i<t1->size; i++){
+                t->data.float32[i] = powf(t1->data.float32[i], (float )exponent);
+            }
+            if(!t1->requires_grad ){
+                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
+                if(!t->grad.float32){
+                    fprintf(stderr, "Memory allocation for grad failed\n");
+                    free(t->data.float32);
+                    free(t->dims);
+                    free(t);
+                    return NULL;
+                }
+            } else {
+                t->grad.float32 = NULL;
+            }
+            break;
+
+        case FLOAT64:
+            for (int i = 0; i < t1->size; i++)
+            {
+                t->data.float64[i] = pow(t1->data.float64[i], exponent);
+            }
+            if (!t1->requires_grad)
+            {
+                t->grad.float64 = (double*)calloc(t->size, sizeof(double));
+                if(!t->grad.float64){
+                    fprintf(stderr, "Memory allocation for grad failed\n");
+                    free(t->data.float64);
+                    free(t->dims);
+                    free(t);
+                    return NULL;
+                }
+            }else{
+                t->grad.float64 = NULL;
+            }
+            break;
+
+        case INT32:
+            for (int i = 0; i < t1->size; i++)
+            {
+                t->data.int32[i] =(int32_t)pow((double)t1->data.int32[i], exponent);
+            }
+            if (!t1->requires_grad)
+            {
+                fprintf(stderr, "Gradient calculation not supported for integer types.\n");
+                free(t->data.float32);
+                free(t->dims);
+                free(t);
+                return NULL;
+            }else{
+                t->grad.float32 = NULL;
+            }
+            break;
+        
+        case INT64:
+            for (int i = 0; i < t1->size; i++)
+            {
+                t->data.int64[i] = (int64_t)pow((double)t1->data.int64[i], exponent);
+            }
+            if (!t1->requires_grad)
+            {
+                fprintf(stderr, "Gradient calculation not supported for integer types.\n");
+                free(t->data.float64);
+                free(t->dims);
+                free(t);
+                return NULL;
+            }else{
+                t->grad.float64 = NULL;
+            }
+            break;
+
+        default:
+            free(t);
+            fprintf(stderr, "Unsupported data type \n");
+            return NULL;
+            break;           
+    }
+    t->requires_grad = (t1->requires_grad == true) ? true : false;
+    t->op=POW;
+    t->num_prevs=1;
+    t->prevs[0]= t1;
+    t->extra = exponent;
+
+    return t;
+}
+
+void Pow_backward(Tensor * out){
+    if(!out)return;
+    switch (out->dtype){
+        case FLOAT32:
+            if(out->prevs[0]->requires_grad==true){
+                for (int i = 0; i < out->size; i++)
+                {
+                    out->prevs[0]->grad.float32[i] += out->grad.float32[i] * (float)out->extra * powf(out->prevs[0]->data.float32[i], ((float)out->extra-1));
+                }
+            }
+            break;
+
+        case FLOAT64:
+            if(out->prevs[0]->requires_grad==true){
+                for (int i = 0; i < out->size; i++)
+                {
+                    out->prevs[0]->grad.float64[i] += out->grad.float64[i] * out->extra * pow(out->prevs[0]->data.float64[i], (out->extra-1));
+                }
+            }
+            break;
+        default:
+        free(out);
+        fprintf(stderr, "Unsupported data type \n");
+        return ;
+        break;
+    }
+}
+
 Tensor * relu(Tensor *t1){
     if(!t1) return NULL;
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
@@ -982,7 +1111,7 @@ Tensor * relu(Tensor *t1){
                     return NULL;
                 }
             } else {
-                t->grad.float64 = NULL;
+                t->grad.float32 = NULL;
             }
             break;
         case FLOAT64:
@@ -1046,14 +1175,14 @@ void relu_backward(Tensor * out){
     }
 }
 
-Tensor * leaky_relu(float negative_slope, Tensor *t1){
+Tensor * leaky_relu(double negative_slope, Tensor *t1){
     if(!t1) return NULL;
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
             for(int i=0; i<t1->size; i++){
-                t->data.float32[i] = (t1->data.float32[i]<0) ? (negative_slope * t1->data.float32[i]) : (t1->data.float32[i]);
+                t->data.float32[i] = (t1->data.float32[i]<0) ? ((float)negative_slope * t1->data.float32[i]) : (t1->data.float32[i]);
             }
             if(!t1->requires_grad){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
@@ -1070,7 +1199,7 @@ Tensor * leaky_relu(float negative_slope, Tensor *t1){
             break;
         case FLOAT64:
             for(int i=0; i<t1->size; i++){
-                t->data.float64[i] = (t1->data.float64[i]<0) ? ((double)negative_slope * t1->data.float64[i]) : (t1->data.float64[i]);
+                t->data.float64[i] = (t1->data.float64[i]<0) ? (negative_slope * t1->data.float64[i]) : (t1->data.float64[i]);
             }
             if(!t1->requires_grad){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
@@ -1103,7 +1232,7 @@ Tensor * leaky_relu(float negative_slope, Tensor *t1){
     t->requires_grad =(t1->requires_grad == true) ? true : false;
     t->op=LEAKY_RELU;
     t->prevs[0] = t1;
-    t->prevs[1]->data.float32[0] = negative_slope;
+    t->extra = negative_slope;
     t->num_prevs = 1;
     return t;
 }
@@ -1115,13 +1244,13 @@ void leaky_relu_backward(Tensor * out){
         switch(out->dtype){
         case FLOAT32:
             for(int i=0; i<out->size; i++){
-                out->prevs[0]->grad.float32[i] += (out->data.float32[i]>0) ? ((float)out->prevs[1]->data.float32[0] * out->grad.float32[i]) : (out->grad.float32[i]);
+                out->prevs[0]->grad.float32[i] += (out->data.float32[i]>0) ? ((float)out->extra * out->grad.float32[i]) : (out->grad.float32[i]);
             }
             break;
 
         case FLOAT64:
             for(int i=0; i<out->size; i++){
-                out->prevs[0]->grad.float64[i] += (out->data.float64[i]>0) ? ((double)out->prevs[1]->data.float32[0] * out->grad.float64[i]) : (out->grad.float64[i]);
+                out->prevs[0]->grad.float64[i] += (out->data.float64[i]>0) ? (out->extra * out->grad.float64[i]) : (out->grad.float64[i]);
             }
             break;
 
