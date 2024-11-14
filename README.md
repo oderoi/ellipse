@@ -63,7 +63,7 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | MUL        |   ✅   |
 | DIV        |   ✅   |
 | MATMUL     |   ✅   |
-| EXP        |   ❌   |
+| EXP        |   ✅   |
 | LOG        |   ❌   |
 | POW        |   ✅   |
 | SUM        |   ✅   |
@@ -83,9 +83,9 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | add_backward   |   ✅   |
 | sub_backward   |   ✅   |
 | mul_backward   |   ✅   |
-| div_backward   |   ❌   |
+| div_backward   |   ✅   |
 | matmul_backward|   ✅   |
-| exp_backward   |   ❌   |
+| exp_backward   |   ✅   |
 | log_backward   |   ❌   |
 | pow_backward   |   ✅   |
 | sum_backward   |   ✅   |
