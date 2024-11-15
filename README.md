@@ -173,7 +173,7 @@ ii.	Activations Derivative
 | **Huber Loss**                  | Regression             | Regression with outliers                | Robust to outliers, smooth           | Requires tuning of threshold $\delta$  |   ❌   |    
 | **KL Divergence**               | Probabilistic Models   |Variational inference, generative models | Compares probability distributions   | Asymmetric, computationally expensive  |   ❌   |
 
-i.    Mean Squared Error (MSE) Loss
+**i.    Mean Squared Error (MSE) Loss**
 
 Formula:
 
@@ -190,7 +190,7 @@ How it Works:
 -    MSE calculates the average of the squared differences between predicted and true values. It penalizes large errors more significantly due to the squaring of the difference.
 
 
-ii.    Mean Absolute Error (MAE) Loss
+**ii.    Mean Absolute Error (MAE) Loss**
 
 Formula:
 
@@ -202,7 +202,7 @@ How it Works:
 -    MAE computes the average of the absolute differences between predicted and true values. Unlike MSE, it does not square the differences, which makes it less sensitive to large errors.
   
 
-iii.    Cross-Entropy Loss
+**iii.    Cross-Entropy Loss**
 
 Formula (for Binary Classification):
 
@@ -226,27 +226,27 @@ How it Works:
 -    Cross-entropy loss measures the difference between two probability distributions: the true label distribution and the predicted probability distribution. It is widely used in classification tasks.
 
 
-iv.    Hinge Loss (SVM Loss)
+**iv.    Hinge Loss (SVM Loss)**
 
-Formula:
+**Formula:**
 
 
 $\text{Hinge Loss} = \sum_{i=1}^{n} \max(0, 1 - y_i \hat{y}_i)$
 
-Where:
+**Where:**
 -	 $y_i  = True label (+1 or -1)$
 -	 $\hat{y}_i  = Predicted score (not probability)$
 
 
-How it Works:
+**How it Works:**
 
 -    Hinge loss is used in Support Vector Machines (SVM) and other classification tasks. It penalizes predictions that are on the wrong side of the decision boundary and doesn’t penalize correctly classified points as long as they are on the correct side of the margin.
 
 
 
-v.    Huber Loss
+**v.    Huber Loss**
 
-Formula:
+**Formula:**
 
 
 $\text{Huber}(\delta) =
@@ -255,25 +255,25 @@ $\text{Huber}(\delta) =
 \delta |y_i - \hat{y}_i| - \frac{1}{2} \delta^2, & \text{otherwise}
 \end{cases}$
 
-Where:
+**Where:**
 -	 $\delta$  is a threshold that determines the transition from quadratic to linear loss.
 
-How it Works:
+**How it Works:**
 
 -    Huber loss combines both MSE and MAE. It behaves like MSE for small errors (i.e., when the absolute error is less than  \delta ) and like MAE for large errors. This makes it less sensitive to outliers compared to MSE while still being differentiable.
 
-vi.    Kullback-Leibler Divergence (KL Divergence)
+**vi.    Kullback-Leibler Divergence (KL Divergence)**
 
-Formula:
+**Formula:**
 
 
 $\text{KL Divergence} = \sum_{i=1}^{n} p_i \log\left(\frac{p_i}{q_i}\right)$
 
-Where:
+**Where:**
 -	 $p_i  = True distribution (e.g., true labels)$
 -	 $q_i  = Predicted distribution$
 
-How it Works:
+**How it Works:**
 
 -    $KL$ divergence measures the difference between two probability distributions. It is asymmetric, meaning  $\text{KL}(p \parallel q) \neq \text{KL}(q \parallel p)$ .
 
