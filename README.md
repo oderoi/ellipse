@@ -181,8 +181,7 @@ ii.	Activations Derivative
 | **Mean Absolute Error (MAE)**| Regression          | $\frac{1}{n} \sum_{i=1}^{n} \text{abs}(y_i - \hat{y}_i)$| Regression with noisy data              | Less sensitive to outliers          | Less smooth gradient               |   ❌   |
 | **Cross-Entropy**           | Classification      | $\sum y_i \log(\hat{y}_i)$                           | Binary or multi-class classification    | Works well with probabilistic models | Sensitive to class imbalance       |   ❌   |
 | **Hinge Loss (SVM)**        | Classification      | $\sum \max(0, 1 - y_i \hat{y}_i)$                      | Support Vector Machines (SVM)            | Efficient for margin classifiers    | Not suitable for probabilistic tasks|   ❌   |
-| **Huber Loss**              | Regression          | For \( |y_i - \hat{y}_i| \leq \delta \), \( \frac{1}{2}(y_i - \hat{y}_i)^2 \) | Regression with outliers                | Robust to outliers, smooth          | Requires tuning of threshold $\delta$ |   ❌   |
-|                             |                     | For \( |y_i - \hat{y}_i| > \delta \), \( \delta \cdot |y_i - \hat{y}_i| - \frac{1}{2} \delta^2 \) |                                         |                                     |                                       |        |    
+| **Huber Loss**              | Regression          | See formula (quadratic for small errors, linear for large)| Regression with outliers                | Robust to outliers, smooth          | Requires tuning of threshold $\delta$ |   ❌   |    
 | **KL Divergence**           | Probabilistic Models| $D_{KL}(P || Q) = \sum_{i} p_i \log\left(\frac{p_i}{q_i}\right)$ | Variational inference, generative models | Compares probability distributions   | Asymmetric, computationally expensive |   ❌   |
 
 
