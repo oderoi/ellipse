@@ -184,6 +184,18 @@ ii.	Activations Derivative
 | **Huber Loss**              | Regression          | See formula (quadratic for small errors, linear for large)| Regression with outliers                | Robust to outliers, smooth          | Requires tuning of threshold $\delta$ |   ❌   |    
 | **KL Divergence**           | Probabilistic Models| $D_{KL}(P || Q) = \sum_{i} p_i \log\left(\frac{p_i}{q_i}\right)$ | Variational inference, generative models | Compares probability distributions   | Asymmetric, computationally expensive |   ❌   |
 
+1. Mean Squared Error (MSE) Loss
+
+Formula:
+
+
+\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
+
+Where:
+	•	 y_i  = True value
+	•	 \hat{y}_i  = Predicted value
+	•	 n  = Number of data points
+
 
 4.	Optimization Algorithms
    
