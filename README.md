@@ -163,7 +163,7 @@ ii.	Activations Derivative
 
 | Task                                        |Formula                             |How it Works|When to Use|Advantages|Disadvantages| Status |
 |---------------------------------------------|------------------------------------|------------|-----------|----------|-------------|--------|
-| Mean Squared Error (MSE) Loss|\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2|MSE calculates the average of the squared differences between predicted and true values. It penalizes large errors more significantly due to the squaring of the difference.|Commonly used in regression tasks where the target variable is continuous. Ideal when you want to penalize larger errors more heavily.|Simple and intuitive. Differentiable, making it suitable for gradient-based optimization methods.|Sensitive to outliers since large errors are squared. May lead to slow convergence in cases with noisy data.|   ❌   |
+|-  Mean Squared Error (MSE) Loss|\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2|- MSE calculates the average of the squared differences between predicted and true values. It penalizes large errors more significantly due to the squaring of the difference.|-  Commonly used in regression tasks where the target variable is continuous. Ideal when you want to penalize larger errors more heavily.|-  Simple and intuitive. Differentiable, making it suitable for gradient-based optimization methods.|Sensitive to outliers since large errors are squared. May lead to slow convergence in cases with noisy data.|   ❌   |
 
 
 
