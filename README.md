@@ -161,12 +161,33 @@ ii.	Activations Derivative
 -	Loss Functions: Basic loss functions like Mean Squared Error and Cross-Entropy to train simple models.
 ### Loss Functions
 
-| Task      | Status |
-|-----------|--------|
-| MSE       |   ❌   |
-| CE        |   ❌   |
-| BCE       |   ❌   |
-| SoftmaxCE |   ❌   |
+| Task                                        |Type                 |Formula                             |When to Use| Status |
+|---------------------------------------------|---------------------|------------------------------------|-----------|--------|
+| Mean Square Error                           |Regression           |
+\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
+|Regression tasks with continuous targets|   ❌   |
+| Mean Absolute Error                         |Regression           |
+\text{MAE} = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|
+|Used for regression tasks where you want a more robust measure of error, especially when there are outliers.|   ❌   |
+| Hinge Loss(SVM Loss)                        |Classification       |
+\text{Hinge Loss} = \sum_{i=1}^{n} \max(0, 1 - y_i \hat{y}_i)
+||   ❌   |
+| Binary Cross-Entropy Loss                   |Classification       |
+\text{Binary Cross-Entropy} = - \frac{1}{n} \sum_{i=1}^{n} [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]
+||   ❌   |
+| Categorical Cross-Entropy Loss              |Classification       |
+\text{Categorical Cross-Entropy} = - \sum_{i=1}^{n} \sum_{c=1}^{C} y_{ic} \log(\hat{y}_{ic})
+||   ❌   |
+| Huber Loss                                  |Regression           |
+\text{Huber}(\delta) =
+\begin{cases}
+\frac{1}{2}(y_i - \hat{y}_i)^2, & \text{for } |y_i - \hat{y}_i| \leq \delta \\
+\delta |y_i - \hat{y}_i| - \frac{1}{2} \delta^2, & \text{otherwise}
+\end{cases}
+||   ❌   |
+| Kullback-Leibler Divergence (KL Divergence) |Probabilistic Models |
+\text{KL Divergence} = \sum_{i=1}^{n} p_i \log\left(\frac{p_i}{q_i}\right)
+||   ❌   |
 
 
 4.	Optimization Algorithms
