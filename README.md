@@ -177,7 +177,7 @@ ii.	Activations Derivative
 
 | Loss Function              | Type                | Formula                                               | When to Use                             | Advantages                          | Disadvantages                      |   Status  |
 |----------------------------|---------------------|-------------------------------------------------------|-----------------------------------------|-------------------------------------|------------------------------------|--------|
-| **Mean Squared Error (MSE)** | Regression          | $\frac{1}{n} \sum (y_i - \hat{y}_i)^2$                 | Regression with continuous targets      | Simple, differentiable              | Sensitive to outliers              |   ❌   |
+| **Mean Squared Error (MSE)** | Regression          | $\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$                 | Regression with continuous targets      | Simple, differentiable              | Sensitive to outliers              |   ❌   |
 | **Mean Absolute Error (MAE)**| Regression          | $\frac{1}{n} \sum |y_i - \hat{y}_i\|$| Regression with noisy data              | Less sensitive to outliers          | Less smooth gradient               |   ❌   |
 | **Cross-Entropy**           | Classification      | $\sum y_i \log(\hat{y}_i)$                           | Binary or multi-class classification    | Works well with probabilistic models | Sensitive to class imbalance       |   ❌   |
 | **Hinge Loss (SVM)**        | Classification      | $\sum \max(0, 1 - y_i \hat{y}_i)$                      | Support Vector Machines (SVM)            | Efficient for margin classifiers    | Not suitable for probabilistic tasks|   ❌   |
