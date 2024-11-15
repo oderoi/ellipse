@@ -181,7 +181,19 @@ ii.	Activations Derivative
 | **Mean Absolute Error (MAE)**| Regression          | $\frac{1}{n} \sum_{i=1}^{n} \text{abs}(y_i - \hat{y}_i)$| Regression with noisy data              | Less sensitive to outliers          | Less smooth gradient               |   ❌   |
 | **Cross-Entropy**           | Classification      | $\sum y_i \log(\hat{y}_i)$                           | Binary or multi-class classification    | Works well with probabilistic models | Sensitive to class imbalance       |   ❌   |
 | **Hinge Loss (SVM)**        | Classification      | $\sum \max(0, 1 - y_i \hat{y}_i)$                      | Support Vector Machines (SVM)            | Efficient for margin classifiers    | Not suitable for probabilistic tasks|   ❌   |
-| **Huber Loss**              | Regression          | $L_\delta(y, \hat{y}) = \begin{cases} \frac{1}{2}(y - \hat{y})^2 & \text{if} \ |y - \hat{y}| \leq \delta \\\delta \cdot (|y - \hat{y}| - \frac{1}{2} \delta) & \text{if} \ |y -\hat{y}| > \delta\end{cases}$ | Regression with outliers                | Robust to outliers, smooth          | Requires tuning of threshold $\delta$ |   ❌   |
+| **Huber Loss**              | Regression          | Huber Loss:
+
+For \( |y - \hat{y}| \leq \delta \):
+
+\[
+L_\delta(y, \hat{y}) = \frac{1}{2}(y - \hat{y})^2
+\]
+
+For \( |y - \hat{y}| > \delta \):
+
+\[
+L_\delta(y, \hat{y}) = \delta \cdot (|y - \hat{y}| - \frac{1}{2} \delta)
+\] | Regression with outliers                | Robust to outliers, smooth          | Requires tuning of threshold $\delta$ |   ❌   |
 | **KL Divergence**           | Probabilistic Models| $D_{KL}(P || Q) = \sum_{i} p_i \log\left(\frac{p_i}{q_i}\right)$ | Variational inference, generative models | Compares probability distributions   | Asymmetric, computationally expensive |   ❌   |
 
 
