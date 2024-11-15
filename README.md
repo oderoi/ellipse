@@ -249,11 +249,11 @@ $\text{Hinge Loss} = \sum_{i=1}^{n} \max(0, 1 - y_i \hat{y}_i)$
 **Formula:**
 
 
-$\text{Huber}(\delta) =
+$$\text{Huber}(\delta) =
 \begin{cases}
 \frac{1}{2}(y_i - \hat{y}_i)^2, & \text{for } |y_i - \hat{y}_i| \leq \delta \\
 \delta |y_i - \hat{y}_i| - \frac{1}{2} \delta^2, & \text{otherwise}
-\end{cases}$
+\end{cases}$$
 
 **Where:**
 -	 $\delta$  is a threshold that determines the transition from quadratic to linear loss.
