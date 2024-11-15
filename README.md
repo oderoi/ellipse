@@ -218,7 +218,7 @@ Where:
 -	 $y_i  = True probability distribution$
 -	 $\hat{y}_i  = Predicted probability distribution$
 -    $C  = Number of classes$
--    y_{ic}  = 1 if the instance belongs to class  c , else 0$
+-    $y_{ic}  = 1 if the instance belongs to class  c , else 0$
 -    $\hat{y}_{ic}  = Predicted probability for class  c $
 
 How it Works:
@@ -278,7 +278,7 @@ $\text{KL Divergence} = \sum_{i=1}^{n} p_i \log\left(\frac{p_i}{q_i}\right)$
 -    $KL$ divergence measures the difference between two probability distributions. It is asymmetric, meaning  $\text{KL}(p \parallel q) \neq \text{KL}(q \parallel p)$ .
 
 
-4.	Optimization Algorithms
+4. Optimization Algorithms
    
 -	Gradient Descent: Implement vanilla gradient descent for updating weights.
 
