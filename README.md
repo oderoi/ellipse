@@ -184,7 +184,7 @@ ii.	Activations Derivative
 | **Huber Loss**              | Regression          | See formula (quadratic for small errors, linear for large)| Regression with outliers                | Robust to outliers, smooth          | Requires tuning of threshold $\delta$ |   ❌   |    
 | **KL Divergence**           | Probabilistic Models| $D_{KL}(P || Q) = \sum_{i} p_i \log\left(\frac{p_i}{q_i}\right)$ | Variational inference, generative models | Compares probability distributions   | Asymmetric, computationally expensive |   ❌   |
 
-1. Mean Squared Error (MSE) Loss
+i.    Mean Squared Error (MSE) Loss
 
 Formula:
 
@@ -192,9 +192,101 @@ Formula:
 $\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$
 
 Where:
--	 y_i  = True value
+-	 $y_i  = True value$
 -	 $\hat{y}_i  = Predicted value$
--	n  = Number of data points
+-	$n  = Number of data points$
+
+How it Works:
+
+-    MSE calculates the average of the squared differences between predicted and true values. It penalizes large errors more significantly due to the squaring of the difference.
+
+
+ii.    Mean Absolute Error (MAE) Loss
+
+Formula:
+
+
+$\text{MAE} = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|$
+
+How it Works:
+
+-    MAE computes the average of the absolute differences between predicted and true values. Unlike MSE, it does not square the differences, which makes it less sensitive to large errors.
+  
+
+iii.    Cross-Entropy Loss
+
+Formula (for Binary Classification):
+
+
+$\text{Binary Cross-Entropy} = - \frac{1}{n} \sum_{i=1}^{n} [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]$
+
+
+For Multi-Class Classification:
+
+$\text{Categorical Cross-Entropy} = - \sum_{i=1}^{n} \sum_{c=1}^{C} y_{ic} \log(\hat{y}_{ic})$
+
+Where:
+-	 $y_i  = True probability distribution$
+-	 $\hat{y}_i  = Predicted probability distribution$
+-    $C  = Number of classes$
+-    y_{ic}  = 1 if the instance belongs to class  c , else 0$
+-    $\hat{y}_{ic}  = Predicted probability for class  c $
+
+How it Works:
+
+-    Cross-entropy loss measures the difference between two probability distributions: the true label distribution and the predicted probability distribution. It is widely used in classification tasks.
+
+
+iv.    Hinge Loss (SVM Loss)
+
+Formula:
+
+
+$\text{Hinge Loss} = \sum_{i=1}^{n} \max(0, 1 - y_i \hat{y}_i)$
+
+Where:
+-	 $y_i  = True label (+1 or -1)$
+-	 $\hat{y}_i  = Predicted score (not probability)$
+
+
+How it Works:
+
+-    Hinge loss is used in Support Vector Machines (SVM) and other classification tasks. It penalizes predictions that are on the wrong side of the decision boundary and doesn’t penalize correctly classified points as long as they are on the correct side of the margin.
+
+
+
+v.    Huber Loss
+
+Formula:
+
+
+$\text{Huber}(\delta) =
+\begin{cases}
+\frac{1}{2}(y_i - \hat{y}_i)^2, & \text{for } |y_i - \hat{y}_i| \leq \delta \\
+\delta |y_i - \hat{y}_i| - \frac{1}{2} \delta^2, & \text{otherwise}
+\end{cases}$
+
+Where:
+-	 $\delta$  is a threshold that determines the transition from quadratic to linear loss.
+
+How it Works:
+
+-    Huber loss combines both MSE and MAE. It behaves like MSE for small errors (i.e., when the absolute error is less than  \delta ) and like MAE for large errors. This makes it less sensitive to outliers compared to MSE while still being differentiable.
+
+vi.    Kullback-Leibler Divergence (KL Divergence)
+
+Formula:
+
+
+$\text{KL Divergence} = \sum_{i=1}^{n} p_i \log\left(\frac{p_i}{q_i}\right)$
+
+Where:
+-	 $p_i  = True distribution (e.g., true labels)$
+-	 $q_i  = Predicted distribution$
+
+How it Works:
+
+-    $KL$ divergence measures the difference between two probability distributions. It is asymmetric, meaning  $\text{KL}(p \parallel q) \neq \text{KL}(q \parallel p)$ .
 
 
 4.	Optimization Algorithms
