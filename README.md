@@ -165,6 +165,15 @@ ii.	Activations Derivative
 |---------------------------------------------|------------------------------------|------------|-----------|----------|-------------|--------|
 |-  Mean Squared Error (MSE) Loss|\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2|- MSE calculates the average of the squared differences between predicted and true values. It penalizes large errors more significantly due to the squaring of the difference.|-  Commonly used in regression tasks where the target variable is continuous. Ideal when you want to penalize larger errors more heavily.|-  Simple and intuitive. Differentiable, making it suitable for gradient-based optimization methods.|Sensitive to outliers since large errors are squared. May lead to slow convergence in cases with noisy data.|   ❌   |
 
+|Loss| Function	Type|	Formula|	When to Use|	Advantages|	Disadvantages|Status|
+|----|--------------|----------|---------------|--------------|--------------|------|
+|Mean Squared Error (MSE)|	Regression|	\frac{1}{n} \sum (y_i - \hat{y}_i)^2|	Regression with continuous targets|	y_i - \hat{y}_i| $end:math:text$|Simple, differentiable|	Sensitive to outliers|   ❌   |
+|Mean Absolute Error (MAE)|	Regression|	$begin:math:text$\frac{1}{n} \sum	y_i - \hat{y}_i	$end:math:text$|	Regression with noisy data|   ❌   |
+|Cross-Entropy|	Classification|	 -\sum y_i \log(\hat{y}_i)| 	Binary or multi-class classification|	Works well with probabilistic models|	Sensitive to class imbalance|   ❌   |
+|Hinge Loss (SVM)|	Classification|	 \sum \max(0, 1 - y_i \hat{y}_i)| 	Support Vector Machines (SVM)|	Efficient for margin classifiers|	Not suitable for probabilistic tasks|   ❌   |
+|Huber Loss|	Regression|	See formula (quadratic for small errors, linear for large)|	Regression with outliers|	Robust to outliers, smooth|	Requires tuning of threshold \delta|   ❌   |
+|KL Divergence|	Probabilistic Models|	 \sum p_i \log\left(\frac{p_i}{q_i}\right)| 	Variational inference, generative models|	Compares probability distributions|	Asymmetric, computationally expensive|   ❌   |
+
 
 
 4.	Optimization Algorithms
