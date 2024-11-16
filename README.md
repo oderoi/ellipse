@@ -83,6 +83,12 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | Division           | $C_{i,j} = A_{i,j} / B_{i,j}$                         |   ✅   |
 | Dot_Product        | $C_{i,j} = \sum_{k=0}^{k-1}\(A_{i,k} \cdot B_{k,j}\)$ |   ✅   |
 | Exponent           | $C_{i,j} = e^{x_{i,j}}$                               |   ✅   |
+| Logarithm          | $C_{i,j} = \log_{10}(X_{i,j})$                        |   ✅   |
+| Power              | $C_{i,j} = A_{i,j}^{x}$                               |   ✅   |
+
+
+b_{i,j} = \log_{10}(a_{i,j})
+
 
 Where:
 - \(A_{ij}\), \(B_{ij}\), and \(C_{ij}\) represent elements at the \(i\)-th row and \(j\)-th column of matrices \(A\), \(B\), and \(C\), respectively.
