@@ -75,19 +75,19 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | MAXPOOL2D  |   ❌   |
 | MAXPOOL3D  |   ❌   |
 
-| Operation          | Formula                                               | Status |
-|--------------------|-------------------------------------------------------|--------|
-| Addition           | $C_{i,j} = A_{i,j} + B_{i,j}$                         |   ✅   |
-| Subtraction        | $C_{i,j} = A_{i,j} - B_{i,j}$                         |   ✅   |
-| Maltiplication     | $C_{i,j} = A_{i,j} * B_{i,j}$                         |   ✅   |
-| Division           | $C_{i,j} = A_{i,j} / B_{i,j}$                         |   ✅   |
-| Dot_Product        | $C_{i,j} = \sum_{k=0}^{k-1}\(A_{i,k} \cdot B_{k,j}\)$ |   ✅   |
-| Exponent           | $C_{i,j} = e^{x_{i,j}}$                               |   ✅   |
-| Logarithm          | $C_{i,j} = \log_{10}(X_{i,j})$                        |   ❌   |
-| Power              | $C_{i,j} = (\mathbf{A}^p){i,j} = (\mathbf{A}{i,j})^p$ |   ✅   |
-| Sum                | $\mathbf{C}   = \sum_{i=0}^{i-1}\(X_{i}\)$            |   ✅   |
-| Transpose          | $(\mathbf{A}^\top){i,j} = (\mathbf{A}){j,i}$          |   ❌   |
-| Flatten            | $\text{Flatten}(A_{m,n}) = \[A_{0,0},\ A_{0,1}, \dots\]$        |   ❌   |
+| Operation          | Formula                                                                   | Status |
+|--------------------|---------------------------------------------------------------------------|--------|
+| Addition           | $C_{i,j} = A_{i,j} + B_{i,j}$                                             |   ✅   |
+| Subtraction        | $C_{i,j} = A_{i,j} - B_{i,j}$                                             |   ✅   |
+| Maltiplication     | $C_{i,j} = A_{i,j} * B_{i,j}$                                             |   ✅   |
+| Division           | $C_{i,j} = A_{i,j} / B_{i,j}$                                             |   ✅   |
+| Dot_Product        | $C_{i,j} = \sum_{k=0}^{k-1}\(A_{i,k} \cdot B_{k,j}\)$                     |   ✅   |
+| Exponent           | $C_{i,j} = e^{x_{i,j}}$                                                   |   ✅   |
+| Logarithm          | $C_{i,j} = \log_{10}(X_{i,j})$                                            |   ❌   |
+| Power              | $C_{i,j} = (\mathbf{A}^p){i,j} = (\mathbf{A}{i,j})^p$                     |   ✅   |
+| Sum                | $\mathbf{C}   = \sum_{i=0}^{i-1}\(X_{i}\)$                                |   ✅   |
+| Transpose          | $(\mathbf{A}^\top){i,j} = (\mathbf{A}){j,i}$                              |   ❌   |
+| Flatten            | $\text{Flatten}(A_{m,n}) = \[A_{0,0},\ A_{0,1}, \dots\, A_{m-1, n-1}]$    |   ❌   |
 
 
 
