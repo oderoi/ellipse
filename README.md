@@ -87,7 +87,7 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | Power              | $C_{i,j} = (\mathbf{A}^p){i,j} = (\mathbf{A}{i,j})^p$ |   ✅   |
 | Sum                | $\mathbf{C}   = \sum_{i=0}^{i-1}\(X_{i}\)$            |   ✅   |
 | Transpose          | $(\mathbf{A}^\top){i,j} = (\mathbf{A}){j,i}$          |   ❌   |
-| Flatten            | $\text{Flatten}(\mathbf{A}) = [\mathbf{A}{0,0}, \mathbf{A}{0,1}, \dots, \mathbf{A}_{m-1,n-1}]$          |   ❌   |
+| Flatten            | $\text{Flatten}(\mathbf{A}_{m,n}) = [\mathbf{A}_{0,0}, \mathbf{A}_{0,1}, \dots, \mathbf{A}_{m-1,n-1}]$          |   ❌   |
 
 
 
