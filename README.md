@@ -82,6 +82,7 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | Maltiplication     | $C_{ij} = A_{ij} * B_{ij}$                         |   ✅   |
 | Division           | $C_{ij} = A_{ij} / B_{ij}$                         |   ✅   |
 | Dot_Product        | $C_{ij} = \sum_{i=1}^{n}\(A_{ij} * B_{ij}\)$       |   ✅   |
+| Exponent           | $C_{ij} = e^{x_{ij}}$                              |   ✅   |
 
 Where:
 - \(A_{ij}\), \(B_{ij}\), and \(C_{ij}\) represent elements at the \(i\)-th row and \(j\)-th column of matrices \(A\), \(B\), and \(C\), respectively.
