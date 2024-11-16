@@ -75,14 +75,14 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | MAXPOOL2D  |   ❌   |
 | MAXPOOL3D  |   ❌   |
 
-| Operation          | Formula                                            | Status |
-|--------------------|----------------------------------------------------|--------|
-| Addition           | $C_{ij} = A_{ij} + B_{ij}$                         |   ✅   |
-| Subtraction        | $C_{ij} = A_{ij} - B_{ij}$                         |   ✅   |
-| Maltiplication     | $C_{ij} = A_{ij} * B_{ij}$                         |   ✅   |
-| Division           | $C_{ij} = A_{ij} / B_{ij}$                         |   ✅   |
-| Dot_Product        | $C_{ij} = \sum_{k=0}^{k-1}\(A_{i,k} \cdot B_{k,j}\)$       |   ✅   |
-| Exponent           | $C_{ij} = e^{x_{ij}}$                              |   ✅   |
+| Operation          | Formula                                               | Status |
+|--------------------|-------------------------------------------------------|--------|
+| Addition           | $C_{i,j} = A_{i,j} + B_{i,j}$                         |   ✅   |
+| Subtraction        | $C_{i,j} = A_{i,j} - B_{i,j}$                         |   ✅   |
+| Maltiplication     | $C_{i,j} = A_{i,j} * B_{i,j}$                         |   ✅   |
+| Division           | $C_{i,j} = A_{i,j} / B_{i,j}$                         |   ✅   |
+| Dot_Product        | $C_{i,j} = \sum_{k=0}^{k-1}\(A_{i,k} \cdot B_{k,j}\)$ |   ✅   |
+| Exponent           | $C_{i,j} = e^{x_{i,j}}$                               |   ✅   |
 
 Where:
 - \(A_{ij}\), \(B_{ij}\), and \(C_{ij}\) represent elements at the \(i\)-th row and \(j\)-th column of matrices \(A\), \(B\), and \(C\), respectively.
