@@ -75,9 +75,9 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | MAXPOOL2D  |   ❌   |
 | MAXPOOL3D  |   ❌   |
 
-| Operation         | Formula                                  |
-|-------------------|------------------------------------------|
-| Matrix Addition   | $\(C_{ij} = A_{ij} + B_{ij}\)$            |
+| Operation         | Formula                                  | Status |
+|-------------------|------------------------------------------|--------|
+| Matrix Addition   | $C_{ij} = \|A_{ij} + B_{ij}\|$           |   ✅   |
 
 Where:
 - \(A_{ij}\), \(B_{ij}\), and \(C_{ij}\) represent elements at the \(i\)-th row and \(j\)-th column of matrices \(A\), \(B\), and \(C\), respectively.
