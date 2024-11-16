@@ -85,7 +85,7 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | Exponent           | $C_{i,j} = e^{x_{i,j}}$                               |   ✅   |
 | Logarithm          | $C_{i,j} = \log_{10}(X_{i,j})$                        |   ❌   |
 | Power              | $C_{i,j} = (\mathbf{A}^p){i,j} = (\mathbf{A}{i,j})^p$ |   ✅   |
-| Sum                | $\mathbf{C}_{i}   = \sum_{i=0}^{i-1}\(X_{i}\)$        |   ✅   |
+| Sum                | $(\mathbf{C})_{i}   = (\mathbf{sum})_{i=0}^{i-1}\(X_{i}\)$        |   ✅   |
 | Transpose          | $(\mathbf{A}^\top){i,j} = (\mathbf{A}){j,i} $         |   ❌   |
 
 
