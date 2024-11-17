@@ -170,11 +170,7 @@ i.	Activations
 | mean      |                                   |   ✅   |
 
  
-$ f(n) =
-  \begin{cases}
-    n/2       & \quad \text{if } n \text{ is even}\\
-    -(n+1)/2  & \quad \text{if } n \text{ is odd}
-  \end{cases}$
+$$\text{ReLU(X)} = \{\ \  {x }\ \text{ if } {x }  \leq\ 0$$
 
 ii.	Activations Derivative
 
