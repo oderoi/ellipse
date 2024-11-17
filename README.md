@@ -98,19 +98,19 @@ Where:
 
 -	Operation Derivative
 
-| Operation Derivative    | Formula                                                                          | Status |
-|-------------------------|----------------------------------------------------------------------------------|--------|
-| Addition_backward       | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = I$     |   ✅   |
-| Subtraction_backward    | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = -I$    |   ✅   |
-| Maltiplication_backward | $\frac{\partial C}{\partial A} = B, \quad \frac{\partial C}{\partial B} = A$     |   ✅   |
-| Division_backward       | $\frac{\partial C}{\partial A} = B, \quad \frac{\partial C}{\partial B} = A$     |   ✅   |
-| Dot_Product_backward    | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = I$     |   ✅   |
-| Exponent_backward       | $\frac{\partial C}{\partial X} = e^{x_{i,j}}$                                    |   ✅   |
+| Operation Derivative    | Formula                                                                        | Status |
+|-------------------------|--------------------------------------------------------------------------------|--------|
+| Addition_backward       | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = I$   |   ✅   |
+| Subtraction_backward    | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = -I$  |   ✅   |
+| Maltiplication_backward | $\frac{\partial C}{\partial A} = B, \quad \frac{\partial C}{\partial B} = A$   |   ✅   |
+| Division_backward       | $\frac{\partial C}{\partial A} = B, \quad \frac{\partial C}{\partial B} = A$   |   ✅   |
+| Dot_Product_backward    | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = I$   |   ✅   |
+| Exponent_backward       | $\frac{\partial C}{\partial X} = e^{x_{i,j}}$                                  |   ✅   |
 | Logarithm_backward      | $\frac{\partial C}{\partial X} = \frac{1}{X}$                                  |   ❌   |
-| Power_backward          | $\frac{\partial C}{\partial A} = B \cdot A^{n-1}$                                |   ✅   |
-| Sum_backward            | $\frac{\partial C}{\partial X_i} = 1\ \  \text{for each}\ \  {i}$                              |   ✅   |
-| Transpose_backward      | Not applicable for individual elements but preserves structure.                  |   -   |
-| Flatten_backward        | No derivative directly, but a 1-to-1 mapping between elements is maintained.     |   -   |
+| Power_backward          | $\frac{\partial C}{\partial A} = B \cdot A^{n-1}$                              |   ✅   |
+| Sum_backward            | $\frac{\partial C}{\partial X_i} = 1\ \  \text{for each}\ \  {i}$              |   ✅   |
+| Transpose_backward      | Not applicable for individual elements but preserves structure.                |   -   |
+| Flatten_backward        | No derivative directly, but a 1-to-1 mapping between elements is maintained.   |   -   |
 | Reshape_backward        | No direct derivative as it doesn’t involve computation. Used for data structure organization.|   -   |
 
 
@@ -160,14 +160,14 @@ Where:
 
 i.	Activations
 
-| Task      | Status |
-|-----------|--------|
-| relu      |   ✅   |
-| sigmoid   |   ✅   |
-| tanh      |   ✅   |
-| softmax   |   ✅   |
-| leaky_relu|   ✅   |
-| mean      |   ✅   |
+| Task      |            Formular               | Status |
+|-----------|-----------------------------------|--------|
+| ReLU      | $\text{ReLU}(x) = \begin{cases} x & \text{if } x > 0 \\ 0 & \text{if } x \leq 0 \end{cases}$            |   ✅   |
+| sigmoid   |                                   |   ✅   |
+| tanh      |                                   |   ✅   |
+| softmax   |                                   |   ✅   |
+| leaky_relu|                                   |   ✅   |
+| mean      |                                   |   ✅   |
 
 ii.	Activations Derivative
 
