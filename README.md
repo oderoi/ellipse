@@ -162,15 +162,13 @@ i.	Activations
 
 | Task      |            Formular               | Status |
 |-----------|-----------------------------------|--------|
-| ReLU      | $\text{ReLU(X)} = \bigg( \frac{{x }\ \text{ if } {x }  \geq\ 0} {0  \text{ if } {x } \le 0}$ |   ✅   |
-| sigmoid   |                                   |   ✅   |
-| tanh      |                                   |   ✅   |
-| softmax   |                                   |   ✅   |
-| leaky_relu|                                   |   ✅   |
-| mean      |                                   |   ✅   |
+| ReLU      | $\text{ReLU({x})} = \bigg( \frac{{x }\ \text{ if } {x }  \geq\ 0} {0  \text{ if } {x } \le 0}$ |   ✅   |
+| sigmoid   |  $\sigma(x) = \frac{1}{1 + e^{-x}}$   |   ✅   |
+| tanh      |  $\text{tanh}(x) = \frac{1 - e^{-2x}}{1 + e^{-2x}}$  |   ✅   |
+| softmax   |  $\text{tanh}(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}}$  |   ✅   |
+| leaky_relu| $\text{ReLU({x})} = \bigg( \frac{{x }\ \text{ if } {x }  \geq\ 0} {\alpha {x}  \text{ if } {x } \le 0}$                                   |   ✅   |
+| mean      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
 
- 
-$$\text{ReLU(X)} = \{\ \  {x }\ \text{ if } {x }  \leq\ 0$$
 
 ii.	Activations Derivative
 
