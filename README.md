@@ -92,11 +92,27 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 
 
 Where:
-- \(A_{ij}\), \(B_{ij}\), and \(C_{ij}\) represent elements at the \(i\)-th row and \(j\)-th column of matrices \(A\), \(B\), and \(C\), respectively.
-- The matrices \(A\) and \(B\) must have the same dimensions for addition to be valid.
+- $\(A_{ij}\)$, $\(B_{ij}\)$, and $\(C_{ij}\)$ represent elements at the $\(i\)-th$ row and $\(j\)-th$ column of matrices $\(A\)$, $\(B\)$, and $\(C\)$, respectively.
+- The matrices $\(A\)$ and $\(B\)$ must have the same dimensions for addition to be valid.
 
 
 -	Operation Derivative
+
+| Operation          | Formula                                                                   | Status |
+|--------------------|---------------------------------------------------------------------------|--------|
+| Addition_backward  | $\frac{\partial {C}_{i,j}}{\partial \hat{A}_{i,j}} C_{i,j} =  B_{i,j}$                                             |   ✅   |
+| Subtraction        | $C_{i,j} = A_{i,j} - B_{i,j}$                                             |   ✅   |
+| Maltiplication     | $C_{i,j} = A_{i,j} * B_{i,j}$                                             |   ✅   |
+| Division           | $C_{i,j} = A_{i,j} / B_{i,j}$                                             |   ✅   |
+| Dot_Product        | $C_{i,j} = \sum_{k=0}^{k-1}\(A_{i,k} \cdot B_{k,j}\)$                     |   ✅   |
+| Exponent           | $C_{i,j} = e^{x_{i,j}}$                                                   |   ✅   |
+| Logarithm          | $C_{i,j} = \log_{10}(X_{i,j})$                                            |   ❌   |
+| Power              | $C_{i,j} = (\mathbf{A}^p){i,j} = (\mathbf{A}{i,j})^p$                     |   ✅   |
+| Sum                | $\mathbf{C}   = \sum_{i=0}^{i-1}\(X_{i}\)$                                |   ✅   |
+| Transpose          | $(\mathbf{A}^\top){i,j} = (\mathbf{A}){j,i}$                              |   ❌   |
+| Flatten            | $\text{Flatten}(A_{m,n}) = \[A_{0,0},\  A_{0,1}, \dots\,\  A_{m-1, n-1}]$ |   ❌   |
+| Reshape            | $\text{Reshape}(A_{m,n}) = A_{n,m}$                                       |   ❌   |
+
 
 | Task           | Status |
 |----------------|--------|
