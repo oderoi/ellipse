@@ -98,9 +98,9 @@ Where:
 
 -	Operation Derivative
 
-| Operation          | Formula                                                                   | Status |
-|--------------------|---------------------------------------------------------------------------|--------|
-| Addition_backward  | $\frac{\partial \text{C}}{\partial \hat{A}_i} C_{i,j} =  B_{i,j}$                                             |   ✅   |
+| Operation          | Formula                                                                      | Status |
+|--------------------|------------------------------------------------------------------------------|--------|
+| Addition_backward  | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = I$ |   ✅   |
 | Subtraction        | $C_{i,j} = A_{i,j} - B_{i,j}$                                             |   ✅   |
 | Maltiplication     | $C_{i,j} = A_{i,j} * B_{i,j}$                                             |   ✅   |
 | Division           | $C_{i,j} = A_{i,j} / B_{i,j}$                                             |   ✅   |
