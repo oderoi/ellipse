@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <stdarg.h>
 
 #define MAX_PREVS 3
 
@@ -43,7 +44,8 @@ typedef enum{
     SOFTMAX,
     DIV,
     POW,
-    EXP
+    EXP,
+    MSE
 }Op;
 
 typedef enum{
@@ -384,8 +386,8 @@ Tensor * add(Tensor * t1, Tensor * t2){
                     free(t);
                     return NULL;
                 }
-            } else {
-                t->grad.float64 = NULL;
+            }else {
+                t->grad.float32 = NULL;
             }
             break;
         case FLOAT64:
@@ -487,7 +489,7 @@ Tensor * sub(Tensor * t1, Tensor * t2){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
+                    free(t->data.float32);
                     free(t->dims);
                     free(t);
                     return NULL;
@@ -873,7 +875,6 @@ Tensor * Div( Tensor * t1, Tensor *t2){
         {
             t->grad.float32 = NULL;
         }
-        
         break;
     case FLOAT64:
         for (int i = 0; i < t1->size; i++){
@@ -1581,7 +1582,6 @@ Tensor * Sigmoid(Tensor * t1){
 void Sigmoid_backward(Tensor * out){
     if(!out) return;
 
-
     if(out->prevs[0]->requires_grad == true){
         switch(out->prevs[0]->dtype){
             case FLOAT32:
@@ -1913,6 +1913,115 @@ void mean_backward(Tensor * out){
     }
 }
 
+Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
+    if(!yTrue ||!yPred) return NULL;
+    if(yTrue->ndim != yPred->ndim || yPred->dtype != yTrue->dtype) return NULL;
+    for (int i = 0; i < yPred->ndim; i++)
+    {
+        if(yTrue->dims[i] != yPred->dims[i]) return NULL;
+    }
+
+    Tensor *t=tensor(NULL, yPred->dtype, (int[]){1}, 1, false);
+    if(!t){
+        fprintf(stderr, "Memory allocation for MSE tensor failed\n");
+        return NULL;
+    }
+    
+    switch (yPred->dtype)
+    {
+        case FLOAT32:
+            for (int i = 0; i < yPred->size; i++)
+            {
+                t->data.float32[0] += powf((yTrue->data.float32[i] - yPred->data.float32[i]), 2.0f);
+            }
+            t->data.float32[0] /= yPred->size;
+            
+            if(!yPred->requires_grad){
+                t->grad.float32 = (float *) calloc(yPred->size, sizeof(float));
+                if(!t->grad.float32){
+                    fprintf(stderr, "Memory allocation for grad failed\n");
+                    free(t->data.float32);
+                    free(t->dims);
+                    free(t);
+                    return NULL;
+                }
+            }else{
+                    t->grad.float32 =NULL;
+                }
+            break;
+        case FLOAT64:
+            for (int i = 0; i < yPred->size; i++)
+            {
+                t->data.float64[0] += pow((yTrue->data.float64[i] - yPred->data.float64[i]), (double)2.0);
+            }
+            t->data.float64[0] /= yPred->size;
+            
+            if(!yPred->requires_grad){
+                t->grad.float64 = (double*)calloc(yPred->size, sizeof(double));
+                if(!t->grad.float64){
+                    fprintf(stderr, "Memory allocation for grad failed\n");
+                    free(t->data.float64);
+                    free(t->dims);
+                    free(t);
+                    return NULL;
+                }
+            }else{
+                    t->grad.float64 =NULL;
+                }
+            break;
+
+        case INT32:
+            free(t);
+            fprintf(stderr, " RuntimeError: \"mse_cpu\" not implemented for 'Int' \n");
+            return NULL;
+            break;
+
+        case INT64:
+            free(t);
+            fprintf(stderr, " RuntimeError: \"mse_cpu\" not implemented for 'Int' \n");
+            return NULL;
+            break;
+
+        default:
+            free(t);
+            fprintf(stderr, "Unsupported data type \n");
+            return NULL;
+    }
+    t->op=MSE;
+    t->prevs[0] = yPred;
+    t->prevs[1] = yTrue;
+    t->num_prevs =2;
+    t->requires_grad = (!yPred->requires_grad) ? true : false;
+    return t;
+}
+
+void MSELoss_backward(Tensor * out){
+    if(!out) return;
+
+    if(out->prevs[0]->requires_grad == true){
+        switch (out->dtype)
+        {
+        case FLOAT32:
+            for (int i = 0; i < out->prevs[0]->size; i++)
+            {
+                out->prevs[0]->grad.float32[i] += (float)(-2/out->prevs[0]->size) * (out->prevs[1]->data.float32[i] - out->prevs[0]->data.float32[i]) * out->grad.float32[i];
+            }
+            break;
+        case FLOAT64:
+            for (int i = 0; i < out->prevs[0]->size; i++)
+            {
+                out->prevs[0]->grad.float64[i] += (double)(-2/out->prevs[0]->size) * (out->prevs[1]->data.float64[i] - out->prevs[0]->data.float64[i]) * out->grad.float64[i];
+            }
+            break;
+        
+        default:
+            fprintf(stderr, "Unsupported data type \n");
+            // free(out);
+            break;
+        }
+    }
+}
+
 void backward(Tensor * t){
     //check if loss is NULL
     if(!t) return;
@@ -1937,6 +2046,14 @@ void backward(Tensor * t){
         Sigmoid_backward(t);
     }else if(t->op == SOFTMAX){
         softmax_backward(t);
+    }else if(t->op ==POW){
+        Pow_backward(t);
+    }else if(t->op == EXP){
+        Exp_backward(t);
+    }else if(t->op == DIV){
+        Div_backward(t);
+    }else if(t->op == MSE){
+        MSELoss_backward(t);
     }
 
     for(int i=0; i<t->num_prevs; i++){
@@ -1944,7 +2061,7 @@ void backward(Tensor * t){
     }
 }
 
-//print data
+// print data
 void print(Tensor* t){
     if(!t) return;
 
@@ -1991,10 +2108,12 @@ void print(Tensor* t){
                 }
             }
         }else if (t->grad.float64){
-            for(int i=0; i<t->size && i<10; i++){
+            // int size = sizeof(t->grad.float64)/sizeof(t->grad.float64[0]);
+            size_t size=sizeof(t->grad.float64);
+            for(int i=0; i<size && i<10; i++){
                 printf("%.4lf", t->grad.float64[i]);
-                printf("%s", i < t->size-1? ", " : "");
-                if(i == 9 && t->size > 10){
+                printf("%s", i < size-1? ", " : "");
+                if(i == 9 && size > 10){
                     printf("...");
                     break;
                 }
