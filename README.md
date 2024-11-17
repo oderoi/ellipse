@@ -106,7 +106,7 @@ Where:
 | Division_backward       | $\frac{\partial C}{\partial A} = B, \quad \frac{\partial C}{\partial B} = A$     |   ✅   |
 | Dot_Product_backward    | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = I$     |   ✅   |
 | Exponent_backward       | $\frac{\partial C}{\partial X} = e^{x_{i,j}}$                                    |   ✅   |
-| Logarithm_backward      | $\frac{\partial C}{\partial X} = \lfrac{1}{X})$                                  |   ❌   |
+| Logarithm_backward      | $\frac{\partial C}{\partial X} = \frac{1}{X})$                                  |   ❌   |
 | Power_backwar           | $\frac{\partial C}{\partial A} = B \cdot A^{n-1}$                                |   ✅   |
 | Sum_backward            | $ \frac{\partial C}{\partial X_i} = 1  for each  i $                             |   ✅   |
 | Transpose_backward      | Not applicable for individual elements but preserves structure.                  |   -   |
