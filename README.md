@@ -162,7 +162,7 @@ i.	Activations
 
 | Task      |            Formular               | Status |
 |-----------|-----------------------------------|--------|
-| ReLU      | $\text{ReLU(X)} = \{\ \  {x }\ \text{ if } {x }  \leq\ 0$ |   ✅   |
+| ReLU      | $\text{ReLU(X)} = \{ { x }\ \text{ if } {x }  \leq\ 0$ |   ✅   |
 | sigmoid   |                                   |   ✅   |
 | tanh      |                                   |   ✅   |
 | softmax   |                                   |   ✅   |
