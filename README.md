@@ -169,7 +169,7 @@ i.	Activations
 | leaky_relu|                                   |   ✅   |
 | mean      |                                   |   ✅   |
 
- $\text{ReLU}(x) = \begin{cases} x & \text{if } x > 0 \\ 0 & \text{if } x \leq 0 \end{cases}$
+ \begin{cases} x & \text{if } x > 0 \\ 0 & \text{if } x \leq 0 \end{cases}
 
 ii.	Activations Derivative
 
