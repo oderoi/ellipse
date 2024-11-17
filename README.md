@@ -108,23 +108,10 @@ Where:
 | Exponent_backward       | $\frac{\partial C}{\partial X} = e^{x_{i,j}}$                                    |   ✅   |
 | Logarithm_backward      | $\frac{\partial C}{\partial X} = \frac{1}{X}$                                  |   ❌   |
 | Power_backward          | $\frac{\partial C}{\partial A} = B \cdot A^{n-1}$                                |   ✅   |
-| Sum_backward            | $\frac{\partial C}{\partial X_i} = 1  \text{for each}  {i}$                              |   ✅   |
+| Sum_backward            | $\frac{\partial C}{\partial X_i} = 1\ \  \text{for each}\ \  {i}$                              |   ✅   |
 | Transpose_backward      | Not applicable for individual elements but preserves structure.                  |   -   |
 | Flatten_backward        | No derivative directly, but a 1-to-1 mapping between elements is maintained.     |   -   |
 | Reshape_backward        | No direct derivative as it doesn’t involve computation. Used for data structure organization.|   -   |
-
-
-| Task           | Status |
-|----------------|--------|
-| add_backward   |   ✅   |
-| sub_backward   |   ✅   |
-| mul_backward   |   ✅   |
-| div_backward   |   ✅   |
-| matmul_backward|   ✅   |
-| exp_backward   |   ✅   |
-| log_backward   |   ❌   |
-| pow_backward   |   ✅   |
-| sum_backward   |   ✅   |
 
 
 -    Memory Management: Efficient use of malloc, calloc, memcpy, and memset for optimized memory handling.
