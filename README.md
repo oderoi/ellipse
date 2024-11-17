@@ -162,15 +162,14 @@ i.	Activations
 
 | Task      |            Formular               | Status |
 |-----------|-----------------------------------|--------|
-| ReLU      | $\text{ReLU}(x) = \begin{cases}
-                                    x\ \ \text{if}\ \ x>0 \\
-                                    0\ \ \text{if}\ \ x<0 
-                                \end{cases}$ |   ✅   |
+| ReLU      | $\text{ReLU}(x) = x & \text{if }\ \ x>0 \\ 0 & \text{if } x \leq 0$ |   ✅   |
 | sigmoid   |                                   |   ✅   |
 | tanh      |                                   |   ✅   |
 | softmax   |                                   |   ✅   |
 | leaky_relu|                                   |   ✅   |
 | mean      |                                   |   ✅   |
+
+ \text{ReLU}(x) = \begin{cases} x & \text{if } x > 0 \\ 0 & \text{if } x \leq 0 \end{cases} 
 
 ii.	Activations Derivative
 
