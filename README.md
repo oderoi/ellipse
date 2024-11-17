@@ -84,7 +84,7 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | Dot_Product        | $C_{i,j} = \sum_{k=0}^{k-1}\(A_{i,k} \cdot B_{k,j}\)$                     |   ✅   |
 | Exponent           | $C_{i,j} = e^{x_{i,j}}$                                                   |   ✅   |
 | Logarithm          | $C_{i,j} = \log_{10}(X_{i,j})$                                            |   ❌   |
-| Power              | $C_{i,j} = (\mathbf{A}^p){i,j} = (\mathbf{A}{i,j})^p$                     |   ✅   |
+| Power              | $C_{i,j} = (\mathbf{A}^p){i,j} = (\mathbf{A}{i,j})^n$                     |   ✅   |
 | Sum                | $\mathbf{C}   = \sum_{i=0}^{i-1}\(X_{i}\)$                                |   ✅   |
 | Transpose          | $(\mathbf{A}^\top){i,j} = (\mathbf{A}){j,i}$                              |   ❌   |
 | Flatten            | $\text{Flatten}(A_{m,n}) = \[A_{0,0},\  A_{0,1}, \dots\,\  A_{m-1, n-1}]$ |   ❌   |
@@ -98,20 +98,20 @@ Where:
 
 -	Operation Derivative
 
-| Operation               | Formula                                                                          | Status |
+| Operation Derivative    | Formula                                                                          | Status |
 |-------------------------|----------------------------------------------------------------------------------|--------|
 | Addition_backward       | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = I$     |   ✅   |
 | Subtraction_backward    | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = -I$    |   ✅   |
 | Maltiplication_backward | $\frac{\partial C}{\partial A} = B, \quad \frac{\partial C}{\partial B} = A$     |   ✅   |
-| Division_backward       | $\frac{\partial C}{\partial A} = \frac{1}{B}, \quad \frac{\partial C}{\partial B} = \frac{-A}{B}^2$     |   ✅   |
-| Dot_Product        | $C_{i,j} = \sum_{k=0}^{k-1}\(A_{i,k} \cdot B_{k,j}\)$                     |   ✅   |
-| Exponent           | $C_{i,j} = e^{x_{i,j}}$                                                   |   ✅   |
-| Logarithm          | $C_{i,j} = \log_{10}(X_{i,j})$                                            |   ❌   |
-| Power              | $C_{i,j} = (\mathbf{A}^p){i,j} = (\mathbf{A}{i,j})^p$                     |   ✅   |
-| Sum                | $\mathbf{C}   = \sum_{i=0}^{i-1}\(X_{i}\)$                                |   ✅   |
-| Transpose          | $(\mathbf{A}^\top){i,j} = (\mathbf{A}){j,i}$                              |   ❌   |
-| Flatten            | $\text{Flatten}(A_{m,n}) = \[A_{0,0},\  A_{0,1}, \dots\,\  A_{m-1, n-1}]$ |   ❌   |
-| Reshape            | $\text{Reshape}(A_{m,n}) = A_{n,m}$                                       |   ❌   |
+| Division_backward       | $\frac{\partial C}{\partial A} = B, \quad \frac{\partial C}{\partial B} = A$     |   ✅   |
+| Dot_Product_backward    | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = I$     |   ✅   |
+| Exponent_backward       | $\frac{\partial C}{\partial X} = e^{x_{i,j}}$                                    |   ✅   |
+| Logarithm_backward      | $\frac{\partial C}{\partial X} = \lfrac{1}(X})$                                  |   ❌   |
+| Power_backwar           | $\frac{\partial C}{\partial A} = B \cdot A^{n-1}$                                |   ✅   |
+| Sum_backward            | $ \frac{\partial C}{\partial X_i} = 1  for each  i $                             |   ✅   |
+| Transpose_backward      | Not applicable for individual elements but preserves structure.                  |   -   |
+| Flatten_backward        | No derivative directly, but a 1-to-1 mapping between elements is maintained.     |   -   |
+| Reshape_backward        | No direct derivative as it doesn’t involve computation. Used for data structure organization.|   -   |
 
 
 | Task           | Status |
