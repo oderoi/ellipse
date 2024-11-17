@@ -169,7 +169,13 @@ i.	Activations
 | leaky_relu|                                   |   ✅   |
 | mean      |                                   |   ✅   |
 
- \begin{cases} x & \text{if } x > 0 \\ 0 & \text{if } x \leq 0 \end{cases}
+ 
+\[ f(n) =
+  \begin{cases}
+    n/2       & \quad \text{if } n \text{ is even}\\
+    -(n+1)/2  & \quad \text{if } n \text{ is odd}
+  \end{cases}
+\]
 
 ii.	Activations Derivative
 
