@@ -162,7 +162,7 @@ i.	Activations
 
 | Task      |            Formular               | Status |
 |-----------|-----------------------------------|--------|
-| ReLU      | $\text{ReLU}(x) $ |   ✅   |
+| ReLU      | $\text{ReLU}(x) = x \text{if}\ x>0$ |   ✅   |
 | sigmoid   |                                   |   ✅   |
 | tanh      |                                   |   ✅   |
 | softmax   |                                   |   ✅   |
