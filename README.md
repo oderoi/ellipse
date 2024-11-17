@@ -56,7 +56,7 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 
 -    Basic Tensor Math:
 
-| Task       | Status |
+<!-- | Task       | Status |
 |------------|--------|
 | ADD        |   ✅   |
 | SUB        |   ✅   |
@@ -73,7 +73,7 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | CONV2D     |   ❌   |
 | CONV3D     |   ❌   |
 | MAXPOOL2D  |   ❌   |
-| MAXPOOL3D  |   ❌   |
+| MAXPOOL3D  |   ❌   | -->
 
 | Operation          | Formula                                                                   | Status |
 |--------------------|---------------------------------------------------------------------------|--------|
@@ -186,7 +186,7 @@ ii.	Activations Derivative
 
 | Loss Function                   | Type                   | When to Use                             | Advantages                           | Disadvantages                          |Status  |
 |---------------------------------|------------------------|-----------------------------------------|--------------------------------------|----------------------------------------|--------|
-| **Mean Squared Error (MSE)**    | Regression             | Regression with continuous targets      | Simple, differentiable               | Sensitive to outliers                  |   ❌   |
+| **Mean Squared Error (MSE)**    | Regression             | Regression with continuous targets      | Simple, differentiable               | Sensitive to outliers                  |   ✅   |
 | **Mean Absolute Error (MAE)**   | Regression             | Regression with noisy data              | Less sensitive to outliers           | Less smooth gradient                   |   ❌   |
 | **Cross-Entropy**               | Classification         | Binary or multi-class classification    | Works well with probabilistic models | Sensitive to class imbalance           |   ❌   |
 | **Hinge Loss (SVM)**            | Classification         | Support Vector Machines (SVM)           | Efficient for margin classifiers     | Not suitable for probabilistic tasks   |   ❌   |
