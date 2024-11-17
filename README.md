@@ -107,8 +107,8 @@ Where:
 | Dot_Product_backward    | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = I$     |   ✅   |
 | Exponent_backward       | $\frac{\partial C}{\partial X} = e^{x_{i,j}}$                                    |   ✅   |
 | Logarithm_backward      | $\frac{\partial C}{\partial X} = \frac{1}{X}$                                  |   ❌   |
-| Power_backward           | $\frac{\partial C}{\partial A} = B \cdot A^{n-1}$                                |   ✅   |
-| Sum_backward            | $ \frac{\partial C}{\partial X_i} = 1$  for each  $i$                              |   ✅   |
+| Power_backward          | $\frac{\partial C}{\partial A} = B \cdot A^{n-1}$                                |   ✅   |
+| Sum_backward            | $\frac{\partial C}{\partial X_i} = 1$  for each  $i$                              |   ✅   |
 | Transpose_backward      | Not applicable for individual elements but preserves structure.                  |   -   |
 | Flatten_backward        | No derivative directly, but a 1-to-1 mapping between elements is maintained.     |   -   |
 | Reshape_backward        | No direct derivative as it doesn’t involve computation. Used for data structure organization.|   -   |
