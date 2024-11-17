@@ -162,11 +162,11 @@ i.	Activations
 
 | Task      |            Formular               | Status |
 |-----------|-----------------------------------|--------|
-| ReLU      | $\text{ReLU({x})} = \bigg( \frac{{x }\ \text{ if } {x }  \geq\ 0} {0  \text{ if } {x } \le 0}$ |   ✅   |
+| ReLU      | $\text{ReLU({x})} = \bigg( \frac{{x }\ \text{ if } {x }  \geq\ 0} {0  \text{ if } {x } < 0}$ |   ✅   |
 | sigmoid   |  $\sigma(x) = \frac{1}{1 + e^{-x}}$   |   ✅   |
 | tanh      |  $\text{tanh}(x) = \frac{1 - e^{-2x}}{1 + e^{-2x}}$  |   ✅   |
 | softmax   |  $\text{Sofmax}{(x_i)} = \frac{e^x-i}{\sum_{j}{e^z_j}}$  |   ✅   |
-| leaky_relu| $\text{LeakyReLU({x})} = \bigg( \frac{{x }\ \text{ if } {x }  \geq\ 0} {\alpha {x}  \text{ if } {x } \le 0}$                                   |   ✅   |
+| LeakyReLU| $\text{LeakyReLU({x})} = \bigg( \frac{{x }\ \text{ if } {x }  \geq\ 0} {\alpha {x}  \text{ if } {x } < 0}$                                   |   ✅   |
 | mean      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
 
 
@@ -174,12 +174,12 @@ ii.	Activations Derivative
 
 | Task      |            Formular               | Status |
 |-----------|-----------------------------------|--------|
-| ReLU      | $\frac{\partial}{\partial{x}} = \bigg( \frac{{1 }\ \text{ if } {x }  \geq\ 0} {0  \text{ if } {x } \le 0}$ |   ✅   |
-| sigmoid   |  $\sigma{\prime}(x) = \sigma(x)(1 - \sigma(x))$   |   ✅   |
-| tanh      |  $\text{tanh}{\prime}(x) = 1 - \text{tanh}^2(x)$   |   ✅   |
-| softmax   |  $\frac{\partial}{\partial{x_k}} = \text{Softmax}{(x_k)}(1 - \text{Softmax}{(x_k)}) $  |   ✅   |
-| leaky_relu| $\frac{\partial}{\partial{x}} = \bigg( \frac{{1 }\ \text{ if } {x }  \geq\ 0} {\alpha  \text{ if } {x } \le 0}$                                   |   ✅   |
-| mean      |  $\frac{\partial{\mu}}{\partial{x_i}} = \frac{1}{n}$ |   ✅   |
+| ReLU_backward      | $\frac{\partial}{\partial{x}} = \bigg( \frac{{1 }\ \text{ if } {x }  \geq\ 0} {0  \text{ if } {x } \le 0}$ |   ✅   |
+| sigmoid_backward   |  $\sigma{\prime}(x) = \sigma(x)(1 - \sigma(x))$   |   ✅   |
+| tanh_backward      |  $\text{tanh}{\prime}(x) = 1 - \text{tanh}^2(x)$   |   ✅   |
+| softmax_backward   |  $\frac{\partial}{\partial{x_k}} = \text{Softmax}{(x_k)}(1 - \text{Softmax}{(x_k)}) $  |   ✅   |
+| LeakyReLU_backward| $\frac{\partial}{\partial{x}} = \bigg( \frac{{1 }\ \text{ if } {x }  \geq\ 0} {\alpha  \text{ if } {x } \le 0}$                                   |   ✅   |
+| mean_backward      |  $\frac{\partial{\mu}}{\partial{x_i}} = \frac{1}{n}$ |   ✅   |
 
 
 -	Loss Functions: Basic loss functions like Mean Squared Error and Cross-Entropy to train simple models.
