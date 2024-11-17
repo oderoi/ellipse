@@ -100,7 +100,7 @@ Where:
 
 | Operation          | Formula                                                                   | Status |
 |--------------------|---------------------------------------------------------------------------|--------|
-| Addition_backward  | $\frac{\partial {C}_{i,j}}{\partial \hat{A}_{i,j}} C_{i,j} =  B_{i,j}$                                             |   ✅   |
+| Addition_backward  | $\frac{\partial \text{C}_{i,j}}{\partial \hat{A}_{i,j}} C_{i,j} =  B_{i,j}$                                             |   ✅   |
 | Subtraction        | $C_{i,j} = A_{i,j} - B_{i,j}$                                             |   ✅   |
 | Maltiplication     | $C_{i,j} = A_{i,j} * B_{i,j}$                                             |   ✅   |
 | Division           | $C_{i,j} = A_{i,j} / B_{i,j}$                                             |   ✅   |
