@@ -98,12 +98,12 @@ Where:
 
 -	Operation Derivative
 
-| Operation          | Formula                                                                      | Status |
-|--------------------|------------------------------------------------------------------------------|--------|
-| Addition_backward  | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = I$ |   ✅   |
-| Subtraction        | $C_{i,j} = A_{i,j} - B_{i,j}$                                             |   ✅   |
-| Maltiplication     | $C_{i,j} = A_{i,j} * B_{i,j}$                                             |   ✅   |
-| Division           | $C_{i,j} = A_{i,j} / B_{i,j}$                                             |   ✅   |
+| Operation               | Formula                                                                          | Status |
+|-------------------------|----------------------------------------------------------------------------------|--------|
+| Addition_backward       | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = I$     |   ✅   |
+| Subtraction_backward    | $\frac{\partial C}{\partial A} = I, \quad \frac{\partial C}{\partial B} = -I$    |   ✅   |
+| Maltiplication_backward | $\frac{\partial C}{\partial A} = B, \quad \frac{\partial C}{\partial B} = A$     |   ✅   |
+| Division_backward       | $\frac{\partial C}{\partial A} = \frac{1}{B}, \quad \frac{\partial C}{\partial B} = \frac{-A}{B}^2$     |   ✅   |
 | Dot_Product        | $C_{i,j} = \sum_{k=0}^{k-1}\(A_{i,k} \cdot B_{k,j}\)$                     |   ✅   |
 | Exponent           | $C_{i,j} = e^{x_{i,j}}$                                                   |   ✅   |
 | Logarithm          | $C_{i,j} = \log_{10}(X_{i,j})$                                            |   ❌   |
