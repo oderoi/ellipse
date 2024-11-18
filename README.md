@@ -170,7 +170,7 @@ i.	Activations
 | mean      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
 
 - Note: Softmax Numerical Stability
-    - When  x  has large values,  e^{x_i}  may overflow. For numerical stability, PyTorch internally subtracts the maximum value from  x  before applying the softmax:
+    - When  x  has large values,  $e^{x_i}$  may overflow. For numerical stability, PyTorch internally subtracts the maximum value from  $x$  before applying the softmax:
 
 
 ii.	Activations Derivative
@@ -183,6 +183,21 @@ ii.	Activations Derivative
 | softmax_backward   |  $\frac{\partial}{\partial{x_k}} = \text{Softmax}{(x_k)}(1 - \text{Softmax}{(x_k)}) $  |   ✅   |
 | LeakyReLU_backward| $\frac{\partial}{\partial{x}} = \bigg( \frac{{1 }\ \text{ if } {x }  \geq\ 0} {\alpha  \text{ if } {x } \le 0}$                                   |   ✅   |
 | mean_backward      |  $\frac{\partial{\mu}}{\partial{x_i}} = \frac{1}{n}$ |   ✅   |
+
+- Note: Derivative of Softmat.
+    - The derivative depends on whether you’re computing it for the same index $( i = j )$ or different indices $( i \neq j )$.
+    - For a vector  $\mathbf{s} = \text{Softmax}(\mathbf{x})$ , the derivative is a matrix (Jacobian) given by:
+    - When  $i = j$ : The derivative is  $s_i (1 - s_i)$ , representing the change in  $s_i$  with respect to  $x_i$ .
+    - When  $i \neq j$ : The derivative is  $-s_i s_j$ , showing the interaction between different outputs of the softmax.
+      
+$$\frac{\partial s_i}{\partial x_j} =
+\begin{cases}
+s_i (1 - s_i), & \text{if } i = j \\
+-s_i s_j, & \text{if } i \neq j
+\end{cases}$$
+
+    
+
 
 
 -	Loss Functions: Basic loss functions like Mean Squared Error and Cross-Entropy to train simple models.
