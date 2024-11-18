@@ -239,7 +239,7 @@ s_1 (1 - s_1) & -s_1 s_2 & \cdots & -s_1 s_n \\
 Formula:
 
 
-$\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$
+$\text{MSE} = \frac{1}{2n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$
 
 The derivative of MSE with respect to each prediction  $\hat{y}_i$  is:
 
