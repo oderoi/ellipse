@@ -165,7 +165,7 @@ i.	Activations
 | ReLU      | $\text{ReLU({x})} = \bigg( \frac{{x }\ \text{ if } {x }  \geq\ 0} {0  \text{ if } {x } < 0}$ |   ✅   |
 | sigmoid   |  $\sigma(x) = \frac{1}{1 + e^{-x}}$   |   ✅   |
 | tanh      |  $\text{tanh}(x) = \frac{1 - e^{-2x}}{1 + e^{-2x}}$  |   ✅   |
-| softmax   |  $\text{Sofmax}{(x_i)} = \frac{e^x_i}{\sum_{j}{e^z_j}}$  |   ✅   |
+| softmax   |  $\text{Sofmax}{(x_i)} = \frac{e^{x_i - \text{max(x)}}}{\sum_{j}{e^{z_j - \text{max(x)}}}}$  |   ✅   |
 | LeakyReLU| $\text{LeakyReLU({x})} = \bigg( \frac{{x }\ \text{ if } {x }  \geq\ 0} {\alpha {x}  \text{ if } {x } < 0}$                                   |   ✅   |
 | mean      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
 
