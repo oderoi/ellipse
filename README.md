@@ -169,6 +169,9 @@ i.	Activations
 | LeakyReLU| $\text{LeakyReLU({x})} = \bigg( \frac{{x }\ \text{ if } {x }  \geq\ 0} {\alpha {x}  \text{ if } {x } < 0}$                                   |   ✅   |
 | mean      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
 
+- Note: Softmax Numerical Stability
+    - When  x  has large values,  e^{x_i}  may overflow. For numerical stability, PyTorch internally subtracts the maximum value from  x  before applying the softmax:
+
 
 ii.	Activations Derivative
 
