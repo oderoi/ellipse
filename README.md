@@ -244,7 +244,7 @@ $\text{MSE} = \frac{1}{2n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$
 The derivative of MSE with respect to each prediction  $\hat{y}_i$  is:
 
 
-$\frac{\partial \text{MSE}}{\partial \hat{y}_i} = -\frac{2}{n}(y_i - \hat{y}_i)$
+$\frac{\partial \text{MSE}}{\partial \hat{y}_i} = -\frac{1}{n}(y_i - \hat{y}_i)$
 
 
 Where:
