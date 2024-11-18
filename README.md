@@ -196,7 +196,26 @@ s_i (1 - s_i), & \text{if } i = j \\
 -s_i s_j, & \text{if } i \neq j
 \end{cases}$$
 
-    
+- Matrix Form of the Derivative (Jacobian).
+    - The derivative can be represented as a Jacobian matrix for the softmax vector:
+
+
+$$\mathbf{J}(\mathbf{s}) = \text{diag}(\mathbf{s}) - \mathbf{s} \mathbf{s}^T$$
+
+ - Where:
+    - 	$\text{diag}(\mathbf{s})$ : Diagonal matrix with  $s_i$  on the diagonal.
+	-	$\mathbf{s} \mathbf{s}^T$ : Outer product of  $\mathbf{s}$  with itself.
+
+    -   Explicitly:
+
+$$\mathbf{J}(\mathbf{s}) =
+\begin{bmatrix}
+s_1 (1 - s_1) & -s_1 s_2 & \cdots & -s_1 s_n \\
+-s_2 s_1 & s_2 (1 - s_2) & \cdots & -s_2 s_n \\
+\vdots & \vdots & \ddots & \vdots \\
+-s_n s_1 & -s_n s_2 & \cdots & s_n (1 - s_n)
+\end{bmatrix}$$
+
 
 
 
