@@ -180,7 +180,7 @@ ii.	Activations Derivative
 | ReLU_backward      | $\frac{\partial}{\partial{x}} = \bigg( \frac{{1 }\ \text{ if } {x }  \geq\ 0} {0  \text{ if } {x } \le 0}$ |   ✅   |
 | sigmoid_backward   |  $\sigma{\prime}(x) = \sigma(x)(1 - \sigma(x))$   |   ✅   |
 | tanh_backward      |  $\text{tanh}{\prime}(x) = 1 - \text{tanh}^2(x)$   |   ✅   |
-| softmax_backward   |  $\frac{\partial}{\partial{x_k}} = \text{Softmax}{(x_k)}(1 - \text{Softmax}{(x_k)})_{(diagonal: )} cross-element requires Jacobian$  |   ✅   |
+| softmax_backward   |  $\frac{\partial}{\partial{x_k}} = \text{Softmax}{(x_k)}(1 - \text{Softmax}{(x_k)})_{(diagonal: )} cross-element\ requires\ Jacobian$  |   ❌   |
 | LeakyReLU_backward| $\frac{\partial}{\partial{x}} = \bigg( \frac{{1 }\ \text{ if } {x }  \geq\ 0} {\alpha  \text{ if } {x } \le 0}$                                   |   ✅   |
 | mean_backward      |  $\frac{\partial{\mu}}{\partial{x_i}} = \frac{1}{n}$ |   ✅   |
 
