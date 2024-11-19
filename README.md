@@ -2,11 +2,9 @@
 <p align="center">
   <img src="imgs/nan/16.svg" alt="Dainemo Logo" width="200"/>
 </p>
-
 <p align='center'>
     A PyTorch like AI Engine from scratch in C programming language
 </p>
-
 <p align="center">
   <img src="imgs/cerebrix.png" alt="Dainemo Logo" width="150"/>
 </p>
