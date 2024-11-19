@@ -1,6 +1,6 @@
 <h1 align='center'><b>nanoTorch</b></h1>
 <p align="center">
-  <img src="imgs/nan/16.svg" alt="Dainemo Logo" width="150"/>
+  <img src="imgs/nan/16.svg" alt="Dainemo Logo" width="400"/>
 </p>
 
 <p align='center'>
