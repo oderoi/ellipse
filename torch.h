@@ -8,6 +8,8 @@
 
 #define MAX_PREVS 3
 
+struct Tensor *transpose(struct Tensor *self);
+
 typedef union
 {
     float* float32;
@@ -65,6 +67,7 @@ typedef struct Tensor{
     struct Tensor * prevs[MAX_PREVS];
     bool requires_grad;
     int num_prevs;
+    struct Tensor *(*T)(struct Tensor *self);
 }Tensor;
 
 static size_t dtype_size(DType dtype){
@@ -84,6 +87,41 @@ static int total_size(int * dims, int ndim){
     }
     return size;
 }
+static int *copy_dims(const int *dims, int ndim){
+    int *new_dims = (int *)malloc(sizeof(int)*ndim);
+    if(!new_dims) return NULL;
+    memcpy(new_dims, dims, sizeof(int)*ndim);
+    return new_dims;
+}
+
+//Memory Management
+void t_free(Tensor* t){
+    if(t == NULL)return;
+
+    if(t->dims) free(t->dims);
+
+    switch (t->dtype)
+    {
+    case FLOAT32:
+        if (t->data.float32) free(t->data.float32);
+        if(t->grad.float32) free(t->grad.float32);
+        break;
+
+    case FLOAT64:
+        if (t->data.float64) free(t->data.float64);
+        if(t->grad.float64) free(t->grad.float64);
+        break;
+
+    case INT32:
+        if (t->data.int32) free(t->data.int32);
+        break;
+
+    case INT64:
+        if (t->data.int64) free(t->data.int64);
+        break;
+    }
+    free(t);
+}
 
 Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_grad){
     if(!dims || ndim <= 0) return NULL;
@@ -100,20 +138,21 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
     t->requires_grad = requires_grad;
     t->op = -1;
     t->num_prevs = 0;
-    t->dims = (int *)malloc(ndim*sizeof(int));
+    t->T=transpose;
+
+    t->dims = copy_dims(dims, ndim);
     if(!t->dims){
         fprintf(stderr, "Memory allocation for dims failed\n");
-        free(t);
+        t_free(t);
         return NULL;
     }
-    memcpy(t->dims, dims, ndim*sizeof(int));
+
     switch(dtype){
         case FLOAT32:
             t->data.float32 = (float*) calloc(t->size , sizeof(float));
             if(!t->data.float32){
                 fprintf(stderr, "Memory allocation for data failed\n");
-                free(t->dims);
-                free(t);
+                t_free(t);
                 return NULL;
             }
             if(data){
@@ -123,9 +162,7 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -136,8 +173,7 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
             t->data.float64 = (double*) calloc(t->size, sizeof(double));
             if(!t->data.float64){
                 fprintf(stderr, "Memory allocation for data failed\n");
-                free(t->dims);
-                free(t);
+                t_free(t);
                 return NULL;
             }
             if(data){
@@ -147,9 +183,7 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -160,31 +194,82 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
             t->data.int32 = (int32_t*) calloc(t->size, sizeof(int32_t));
             if(!t->data.int32){
                 fprintf(stderr, "Memory allocation for data failed\n");
-                free(t->dims);
-                free(t);
+                t_free(t);
                 return NULL;
             }
             if(data){
                 memcpy(t->data.int32, data, t->size*sizeof(int32_t));
             }
+            t->grad.float32 = NULL;
             break;
         case INT64:
             t->data.int64 = (int64_t*) calloc(t->size, sizeof(int64_t));
             if(!t->data.int64){
                 fprintf(stderr, "Memory allocation for data failed\n");
-                free(t->dims);
-                free(t);
+                t_free(t);
                 return NULL;
             }
             if(data){
                 memcpy(t->data.int64, data, t->size*sizeof(int64_t));
             }
+            t->grad.float64 = NULL;
             break;
         default:
-        fprintf(stderr, "Unsupported data type\n");
-        free(t->dims);
-        free(t);
+            fprintf(stderr, "Unsupported data type\n");
+            t_free(t);
+            return NULL;
     }
+    return t;
+}
+
+static int T_index(int index, int rows, int cols){
+    int row = index / cols;
+    int col = index % cols;
+    return col * rows + row;
+}
+
+Tensor * transpose(Tensor *self){
+    if(!self || self->ndim != 2){
+        fprintf(stderr, "Cannot transpose a tensor with %d dimensions\n", self->ndim);
+        return NULL;
+    }
+    
+    int new_dims[2] = {self->dims[1], self->dims[0]};
+
+    Tensor * t = tensor(NULL, self->dtype, new_dims, 2, self->requires_grad);
+    if(!t) return NULL;
+
+    int rows = self->dims[0];
+    int cols = self->dims[1];
+
+    switch (self->dtype){
+        case FLOAT32:
+            for (int i = 0; i < self->size; i++)
+            {
+                int t_idx = T_index(i, rows, cols);
+                t->data.float32[t_idx] = self->data.float32[i];
+            }
+            break;
+        case FLOAT64:
+            for (int i = 0; i < self->size; i++){
+                int t_idx = T_index(i, rows, cols);
+                t->data.float64[t_idx] = self->data.float64[i];
+            }
+            break;
+        case INT32:
+            for (int i = 0; i < self->size; i++){
+                int t_idx = T_index(i, rows, cols);
+                t->data.int32[t_idx] = self->data.int32[i];
+            }
+            break;
+        case INT64:
+            for (int i = 0; i < self->size; i++){
+                int t_idx = T_index(i, rows, cols);
+                t->data.int64[t_idx] = self->data.int64[i];
+            }
+            break;
+    }
+
     return t;
 }
 
@@ -214,7 +299,7 @@ Tensor * zeros(DType dtype, int * dims, int ndim, bool requires_grad){
             }
             break;
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -315,35 +400,6 @@ Tensor * randd(DType dtype, int * dims, int ndim, bool requires_grad){
     return t;    
 }
 
-//Memory Management
-void t_free(Tensor* t){
-    if(t == NULL)return;
-    if (t->data.float32 != NULL) {
-        free(t->data.float32);
-        t->data.float32 = NULL;
-    }else if (t->data.float64 != NULL) {
-        free(t->data.float64);
-        t->data.float64 = NULL;
-    }else if (t->data.int32 != NULL) {
-        free(t->data.int32);
-        t->data.int32 = NULL;
-    }else if (t->data.int64 != NULL) {
-        free(t->data.int64);
-        t->data.int64 = NULL;
-    }
-    if(t->grad.float32 != NULL) {
-        free(t->grad.float32);
-        t->grad.float32 = NULL;
-    } else if (t->grad.float64 != NULL) {
-        free(t->grad.float64);
-        t->grad.float64 = NULL;
-    }
-    if (t->dims!= NULL) {
-        free(t->dims);
-        t->dims = NULL;
-    }
-    free(t);
-}
 
 void grad_init(Tensor * loss){
     if(!loss) return;
@@ -381,9 +437,7 @@ Tensor * add(Tensor * t1, Tensor * t2){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             }else {
@@ -398,9 +452,7 @@ Tensor * add(Tensor * t1, Tensor * t2){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -418,7 +470,7 @@ Tensor * add(Tensor * t1, Tensor * t2){
             }
             break;
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -445,7 +497,7 @@ void add_backward(Tensor * out){
                 }
                 break;
             default:
-                free(out);
+                t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
         }
@@ -463,7 +515,7 @@ void add_backward(Tensor * out){
                 }
                 break;
             default:
-                free(out);
+                t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
         }
@@ -489,9 +541,7 @@ Tensor * sub(Tensor * t1, Tensor * t2){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -506,9 +556,7 @@ Tensor * sub(Tensor * t1, Tensor * t2){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -525,7 +573,7 @@ Tensor * sub(Tensor * t1, Tensor * t2){
                 t->data.int64[i] = t1->data.int64[i] - t2->data.int64[i];
             }
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -552,7 +600,7 @@ void sub_backward(Tensor * out){
                 }
                 break;           
             default:
-                free(out);
+                t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
         }
@@ -570,7 +618,7 @@ void sub_backward(Tensor * out){
                 }
                 break;
             default:
-                free(out);
+                t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
         }
@@ -598,9 +646,7 @@ Tensor * mul(Tensor *t1, Tensor *t2){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -615,9 +661,7 @@ Tensor * mul(Tensor *t1, Tensor *t2){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -661,7 +705,7 @@ void mul_backward(Tensor * out){
                 }
                 break;
             default:
-                free(out);
+                t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
         }
@@ -679,7 +723,7 @@ void mul_backward(Tensor * out){
                 }
                 break;
             default:
-                free(out);
+                t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
         }
@@ -713,9 +757,7 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -736,9 +778,7 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -768,7 +808,7 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
             }
             break;
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -839,7 +879,7 @@ void matmul_backward(Tensor * out){
             }
             break;
         default:
-            free(out);
+            t_free(out);
             fprintf(stderr, "Unsupported data type \n");
             return;
     }
@@ -854,6 +894,7 @@ Tensor * Div( Tensor * t1, Tensor *t2){
     }
 
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+    if(!t) return NULL;
 
     switch (t1->dtype)
     {
@@ -866,9 +907,7 @@ Tensor * Div( Tensor * t1, Tensor *t2){
             t->grad.float32 = (float*)calloc(t1->size, sizeof(float));
             if(!t1->grad.float32){
                 fprintf(stderr, "Memory allocation for grad failed\n");
-                free(t->data.float32);
-                free(t->dims);
-                free(t);
+                t_free(t);
                 return NULL;
             }
         }else
@@ -884,9 +923,7 @@ Tensor * Div( Tensor * t1, Tensor *t2){
             t->grad.float64 = (double*)calloc(t1->size, sizeof(double));
             if(!t1->grad.float64){
                 fprintf(stderr, "Memory allocation for grad failed\n");
-                free(t->data.float64);
-                free(t->dims);
-                free(t);
+                t_free(t);
                 return NULL;
             }
         }else{
@@ -899,9 +936,7 @@ Tensor * Div( Tensor * t1, Tensor *t2){
         }
         if(!t1->requires_grad || !t2->requires_grad){
             fprintf(stderr, "Only Tensors of floating point and complex dtype can require gradients\n");
-            free(t->data.float32);
-            free(t->dims);
-            free(t);
+            t_free(t);
             return NULL;
         }
         break;
@@ -911,14 +946,12 @@ Tensor * Div( Tensor * t1, Tensor *t2){
         }
         if(!t1->requires_grad || !t2->requires_grad){
             fprintf(stderr, "Only Tensors of floating point and complex dtype can require gradients\n");
-            free(t->data.float64);
-            free(t->dims);
-            free(t);
+            t_free(t);
             return NULL;
         }
         break;
     default:
-        free(t);
+        t_free(t);
         fprintf(stderr, "Unsupported data type \n");
         return NULL;
         break;
@@ -967,7 +1000,7 @@ void Div_backward(Tensor *out){
         }
         break;    
     default:
-        free(out);
+        t_free(out);
         fprintf(stderr, "Unsupported data type \n");
         return;
         break;
@@ -987,9 +1020,7 @@ Tensor* Pow(Tensor *t1, double exponent){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1007,9 +1038,7 @@ Tensor* Pow(Tensor *t1, double exponent){
                 t->grad.float64 = (double*)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             }else{
@@ -1025,9 +1054,7 @@ Tensor* Pow(Tensor *t1, double exponent){
             if (!t1->requires_grad)
             {
                 fprintf(stderr, "Gradient calculation not supported for integer types.\n");
-                free(t->data.int32);
-                free(t->dims);
-                free(t);
+                t_free(t);
                 return NULL;
             }else{
                 t->grad.float32 = NULL;
@@ -1042,9 +1069,7 @@ Tensor* Pow(Tensor *t1, double exponent){
             if (!t1->requires_grad)
             {
                 fprintf(stderr, "Gradient calculation not supported for integer types.\n");
-                free(t->data.int64);
-                free(t->dims);
-                free(t);
+                t_free(t);
                 return NULL;
             }else{
                 t->grad.float64 = NULL;
@@ -1052,7 +1077,7 @@ Tensor* Pow(Tensor *t1, double exponent){
             break;
 
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
             break;           
@@ -1087,7 +1112,7 @@ void Pow_backward(Tensor * out){
             }
             break;
         default:
-        free(out);
+        t_free(out);
         fprintf(stderr, "Unsupported data type \n");
         return ;
         break;
@@ -1112,9 +1137,7 @@ Tensor * Exp(Tensor *t1){
                 if (!t1->grad.float32)
                 {
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->grad.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
                 
@@ -1133,9 +1156,7 @@ Tensor * Exp(Tensor *t1){
                 if (!t1->grad.float64)
                 {
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->grad.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
                 
@@ -1151,9 +1172,7 @@ Tensor * Exp(Tensor *t1){
             if (!t1->requires_grad)
             {
                 fprintf(stderr, "Gradient calculation not supported for integer types.\n");
-                free(t->data.float32);
-                free(t->dims);
-                free(t);
+                t_free(t);
                 return NULL;
                 
             }else{
@@ -1168,9 +1187,7 @@ Tensor * Exp(Tensor *t1){
             if (!t1->requires_grad)
             {
                 fprintf(stderr, "Gradient calculation not supported for integer types.\n");
-                free(t->data.float64);
-                free(t->dims);
-                free(t);
+                t_free(t);
                 return NULL;
                 
             }else{
@@ -1178,7 +1195,7 @@ Tensor * Exp(Tensor *t1){
             }
             break;
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
             break;           
@@ -1212,7 +1229,7 @@ void Exp_backward(Tensor * out){
             }
             break;
         default:
-        free(out);
+        t_free(out);
         fprintf(stderr, "Unsupported data type \n");
         return ;
         break;
@@ -1232,9 +1249,7 @@ Tensor * relu(Tensor *t1){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1249,9 +1264,7 @@ Tensor * relu(Tensor *t1){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1269,7 +1282,7 @@ Tensor * relu(Tensor *t1){
             }
             break;
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1295,7 +1308,7 @@ void relu_backward(Tensor * out){
             }
             break;
         default:
-            free(out);
+            t_free(out);
             fprintf(stderr, "Unsupported data type \n");
             return;
         }
@@ -1315,9 +1328,7 @@ Tensor * leaky_relu(double negative_slope, Tensor *t1){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1332,9 +1343,7 @@ Tensor * leaky_relu(double negative_slope, Tensor *t1){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1342,17 +1351,17 @@ Tensor * leaky_relu(double negative_slope, Tensor *t1){
             }
             break;
         case INT32:
-            free(t);
+            t_free(t);
             fprintf(stderr, " \"leaky_relu\" not implemented for 'int32' \n");
             return NULL;
             break;
         case INT64:
-            free(t);
+            t_free(t);
             fprintf(stderr, " \"leaky_relu\" not implemented for 'int64' \n");
             return NULL;
             break;
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1382,7 +1391,7 @@ void leaky_relu_backward(Tensor * out){
             break;
 
         default:
-            free(out);
+            t_free(out);
             fprintf(stderr, "Unsupported data type \n");
             return;
         }
@@ -1405,9 +1414,7 @@ Tensor * Tanh(Tensor * t1){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1422,9 +1429,7 @@ Tensor * Tanh(Tensor * t1){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1439,9 +1444,7 @@ Tensor * Tanh(Tensor * t1){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1456,9 +1459,7 @@ Tensor * Tanh(Tensor * t1){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1467,7 +1468,7 @@ Tensor * Tanh(Tensor * t1){
             break;
 
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1507,7 +1508,7 @@ void Tanh_backward(Tensor * out){
             break;
 
         default:
-            free(out);
+            t_free(out);
             fprintf(stderr, "Unsupported data type \n");
             return;
         }
@@ -1529,9 +1530,7 @@ Tensor * Sigmoid(Tensor * t1){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1546,9 +1545,7 @@ Tensor * Sigmoid(Tensor * t1){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1566,7 +1563,7 @@ Tensor * Sigmoid(Tensor * t1){
             }
             break;
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1597,7 +1594,7 @@ void Sigmoid_backward(Tensor * out){
                 }
                 break;
             default:
-                free(out);
+                t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
             }
@@ -1620,7 +1617,7 @@ Tensor * softmax(Tensor *t1){
     switch(t1->dtype){
         case FLOAT32:
             if(!ex_float){
-                free(t);
+                t_free(t);
                 fprintf(stderr, "Memory allocation failed \n");
                 return NULL;
             }
@@ -1645,9 +1642,7 @@ Tensor * softmax(Tensor *t1){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1657,7 +1652,7 @@ Tensor * softmax(Tensor *t1){
 
         case FLOAT64:
             if(!ex_double){
-                free(t);
+                t_free(t);
                 fprintf(stderr, "Memory allocation failed \n");
                 return NULL;
             }
@@ -1682,9 +1677,7 @@ Tensor * softmax(Tensor *t1){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1693,19 +1686,19 @@ Tensor * softmax(Tensor *t1){
             break;
 
         case INT32:
-            free(t);
+            t_free(t);
             fprintf(stderr, " \"softmax\" not implemented for 'int32' \n");
             return NULL;
             break;
 
         case INT64:
-            free(t);
+            t_free(t);
             fprintf(stderr, " \"softmax\" not implemented for 'int64' \n");
             return NULL;
             break;
 
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1721,40 +1714,47 @@ Tensor * softmax(Tensor *t1){
 void softmax_backward(Tensor *out){
     if(!out) return;
 
-    float gradsum_float = 0.0f;
-    double gradsum_double = 0.0;
+    if(!out->requires_grad){
+        switch(out->prevs[0]->dtype){
+            case FLOAT32:
+                for( int i = 0; i<out->prevs[0]->dims[0]; i++){
+                    for (int j = 0; j < out->prevs[0]->dims[1]; j++)
+                    {
+                        if (i != j)
+                        {
+                            out->prevs[0]->grad.float32[i*out->prevs[0]->dims[1] + j] += (out->prevs[0]->data.float32[i] * out->prevs[0]->data.float32[j]) * out->grad.float32[i*out->prevs[0]->dims[1] + j];
+                        }else{
+                            out->prevs[0]->grad.float32[i*out->prevs[0]->dims[1] + j] += out->prevs[0]->data.float32[i] * (1 - out->prevs[0]->data.float32[i]) * out->grad.float32[i*out->prevs[0]->dims[1] + j];
+                        } 
+                    }
+                }
+                break;
+            case FLOAT64:
+                for( int i = 0; i<out->prevs[0]->dims[0]; i++){
+                    for (int j = 0; j < out->prevs[0]->dims[1]; j++)
+                    {
+                        if (i != j)
+                        {
+                            out->prevs[0]->grad.float64[i*out->prevs[0]->dims[1] + j] += -(out->prevs[0]->data.float64[i] * out->prevs[0]->data.float64[j]) * out->grad.float64[i*out->prevs[0]->dims[1] + j];
+                        }else{
+                            out->prevs[0]->grad.float64[i*out->prevs[0]->dims[1] + j] += out->prevs[0]->data.float64[i] * (1 - out->prevs[0]->data.float64[i]) * out->grad.float64[i*out->prevs[0]->dims[1] + j];
+                        } 
+                    }
+                }
+                break;
 
-    switch(out->prevs[0]->dtype){
-        case FLOAT32:
-            for(int i = 1; i < out->prevs[0]->size; i++) {
-                gradsum_float += out->grad.float32[i];
-            }
-
-            for( int i = 0; i<out->prevs[0]->size; i++){
-                out->prevs[0]->grad.float32[i] += out->grad.float32[i] - expf(out->data.float32[i]) * gradsum_float;
-            }
-            break;
-
-        case FLOAT64:
-            for(int i = 1; i < out->prevs[0]->size; i++) {
-                gradsum_double += out->grad.float64[i];
-            }
-
-            for( int i = 0; i<out->prevs[0]->size; i++){
-                out->prevs[0]->grad.float64[i] += out->grad.float64[i] - expf(out->data.float64[i]) * gradsum_double;
-            }
-            break;
-
-        default:
-            free(out);
-            fprintf(stderr, "Unsupported data type \n");
-            return;
+            default:
+                t_free(out);
+                fprintf(stderr, "Unsupported data type \n");
+                return;
+        }
     }
 }
 
 Tensor * sum(Tensor * t1){
     if(!t1) return NULL;
     Tensor *t=tensor(NULL, t1->dtype, (int[]){1}, 1, false);
+    if (!t) return NULL;
 
     switch(t1->dtype){
         case FLOAT32:
@@ -1765,9 +1765,7 @@ Tensor * sum(Tensor * t1){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1782,9 +1780,7 @@ Tensor * sum(Tensor * t1){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1813,10 +1809,36 @@ Tensor * sum(Tensor * t1){
     return t;
 }
 
+void sum_backward(Tensor * out){
+    if (!out) return;
+    if (!out->requires_grad)
+    {
+        switch (out->dtype)
+        {
+        case FLOAT32:
+            for(int i = 0; i<out->prevs[0]->size; i++){
+                out->prevs[0]->grad.float32[i] += out->grad.float32[0] * 1.0f;
+            }
+            break;
+        case FLOAT64:
+            for(int i = 0; i<out->prevs[0]->size; i++){
+                    out->prevs[0]->grad.float64[i] += out->grad.float64[0] * 1.0;
+                }
+            break;
+        default:
+            t_free(out);
+            fprintf(stderr, "Unsupported data type \n");
+            return;
+            break;
+        }
+    } 
+}
+
 Tensor * mean(Tensor * t1){
     if(!t1) return NULL;
 
     Tensor *t = tensor(NULL, t1->dtype, (int[]){1}, 1, false);
+    if(!t) return NULL;
 
     switch(t1->dtype){
         case FLOAT32:
@@ -1828,9 +1850,7 @@ Tensor * mean(Tensor * t1){
                 t->grad.float32 = (float *)calloc(t->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1846,9 +1866,7 @@ Tensor * mean(Tensor * t1){
                 t->grad.float64 = (double *)calloc(t->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             } else {
@@ -1856,19 +1874,19 @@ Tensor * mean(Tensor * t1){
             }
             break;
         case INT32:
-            free(t);
+            t_free(t);
             fprintf(stderr, " mean(): could not infer output dtype. Input dtype must be either a floating point or complex dtype. Got: int32 \n");
             return NULL;
             break;
 
         case INT64:
-            free(t);
+            t_free(t);
             fprintf(stderr, " mean(): could not infer output dtype. Input dtype must be either a floating point or complex dtype. Got: int64 \n");
             return NULL;
             break;
 
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1884,7 +1902,7 @@ Tensor * mean(Tensor * t1){
 void mean_backward(Tensor * out){
     if(!out) return;
     
-    if(out->prevs[0]->requires_grad == true){
+    if(out->requires_grad == true){
         switch(out->dtype){
             case FLOAT32:
                 // Ensure `out->grad` and `out->prevs[0]->grad` are allocated
@@ -1907,6 +1925,7 @@ void mean_backward(Tensor * out){
                 }
                 break;
             default:
+                t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 break;
         }
@@ -1924,6 +1943,7 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
     Tensor *t=tensor(NULL, yPred->dtype, (int[]){1}, 1, false);
     if(!t){
         fprintf(stderr, "Memory allocation for MSE tensor failed\n");
+        t_free(t);
         return NULL;
     }
     
@@ -1932,17 +1952,15 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
         case FLOAT32:
             for (int i = 0; i < yPred->size; i++)
             {
-                t->data.float32[0] += powf((yTrue->data.float32[i] - yPred->data.float32[i]), 2.0f);
+                t->data.float32[0] += powf((yPred->data.float32[i] - yTrue->data.float32[i]), 2.0f);
             }
-            t->data.float32[0] /= yPred->size;
+            t->data.float32[0] /= (2*yPred->size);
             
             if(!yPred->requires_grad){
                 t->grad.float32 = (float *) calloc(yPred->size, sizeof(float));
                 if(!t->grad.float32){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float32);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             }else{
@@ -1952,17 +1970,15 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
         case FLOAT64:
             for (int i = 0; i < yPred->size; i++)
             {
-                t->data.float64[0] += pow((yTrue->data.float64[i] - yPred->data.float64[i]), (double)2.0);
+                t->data.float64[0] += pow((yPred->data.float64[i] - yTrue->data.float64[i]), (double)2.0);
             }
-            t->data.float64[0] /= yPred->size;
+            t->data.float64[0] /= (2*yPred->size);
             
             if(!yPred->requires_grad){
                 t->grad.float64 = (double*)calloc(yPred->size, sizeof(double));
                 if(!t->grad.float64){
                     fprintf(stderr, "Memory allocation for grad failed\n");
-                    free(t->data.float64);
-                    free(t->dims);
-                    free(t);
+                    t_free(t);
                     return NULL;
                 }
             }else{
@@ -1971,19 +1987,19 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
             break;
 
         case INT32:
-            free(t);
+            t_free(t);
             fprintf(stderr, " RuntimeError: \"mse_cpu\" not implemented for 'Int' \n");
             return NULL;
             break;
 
         case INT64:
-            free(t);
+            t_free(t);
             fprintf(stderr, " RuntimeError: \"mse_cpu\" not implemented for 'Int' \n");
             return NULL;
             break;
 
         default:
-            free(t);
+            t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1991,33 +2007,32 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
     t->prevs[0] = yPred;
     t->prevs[1] = yTrue;
     t->num_prevs =2;
-    t->requires_grad = (!yPred->requires_grad) ? true : false;
+    t->requires_grad = (yPred->requires_grad==true) ? true : false;
     return t;
 }
 
 void MSELoss_backward(Tensor * out){
     if(!out) return;
 
-    if(out->prevs[0]->requires_grad == true){
-        switch (out->dtype)
-        {
-        case FLOAT32:
-            for (int i = 0; i < out->prevs[0]->size; i++)
-            {
-                out->prevs[0]->grad.float32[i] += (float)(-2/out->prevs[0]->size) * (out->prevs[1]->data.float32[i] - out->prevs[0]->data.float32[i]) * out->grad.float32[i];
-            }
-            break;
-        case FLOAT64:
-            for (int i = 0; i < out->prevs[0]->size; i++)
-            {
-                out->prevs[0]->grad.float64[i] += (double)(-2/out->prevs[0]->size) * (out->prevs[1]->data.float64[i] - out->prevs[0]->data.float64[i]) * out->grad.float64[i];
-            }
-            break;
-        
-        default:
-            fprintf(stderr, "Unsupported data type \n");
-            // free(out);
-            break;
+    if(!out->requires_grad){
+        switch (out->dtype){
+            case FLOAT32:
+                for (int i = 0; i < out->prevs[0]->size; i++)
+                {
+                    out->prevs[0]->grad.float32[i] += (float)(1/out->prevs[0]->size) * (out->prevs[0]->data.float32[i] - out->prevs[1]->data.float32[i]) * out->grad.float32[0];
+                }
+                break;
+            case FLOAT64:
+                for (int i = 0; i < out->prevs[0]->size; i++)
+                {
+                    out->prevs[0]->grad.float64[i] += (double)(1/out->prevs[0]->size) * (out->prevs[0]->data.float64[i] - out->prevs[1]->data.float64[i]) * out->grad.float64[0];
+                }
+                break;
+            
+            default:
+                fprintf(stderr, "Unsupported data type \n");
+                t_free(out);
+                break;
         }
     }
 }
@@ -2052,8 +2067,8 @@ void backward(Tensor * t){
         Exp_backward(t);
     }else if(t->op == DIV){
         Div_backward(t);
-    }else if(t->op == MSE){
-        MSELoss_backward(t);
+    }else if(t->op == SUM){
+        sum_backward(t);
     }
 
     for(int i=0; i<t->num_prevs; i++){
