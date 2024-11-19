@@ -1,6 +1,6 @@
 <h1 align='center'><b>nanoTorch</b></h1>
 <p align="center">
-  <img src="imgs/nan/16.svg" alt="Dainemo Logo" width="200"/>
+  <img src="imgs/nan/16.svg" alt="Dainemo Logo" width="200" height="200"/>
 </p>
 <p align='center'>
     A PyTorch like AI Engine from scratch in C programming language
