@@ -1,4 +1,28 @@
 <!-- <h1 align='center'><b>nano</b></h1> -->
+
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="/imgs/16.svg">
+  <img alt="tiny corp logo" src="/imgs/nano.svg" width="50%" height="50%">
+</picture>
+
+nano: For something between [PyTorch](https://github.com/pytorch/pytorch) and [karpathy/micrograd](https://github.com/karpathy/micrograd). Maintained by [tiny corp](https://tinygrad.org).
+
+<h3>
+
+[Homepage](https://github.com/tinygrad/tinygrad) | [Documentation](https://docs.tinygrad.org/) | [Discord](https://discord.gg/ZjZadyC7PK)
+
+</h3>
+
+[![GitHub Repo stars](https://img.shields.io/github/stars/tinygrad/tinygrad)](https://github.com/tinygrad/tinygrad/stargazers)
+[![Unit Tests](https://github.com/tinygrad/tinygrad/actions/workflows/test.yml/badge.svg)](https://github.com/tinygrad/tinygrad/actions/workflows/test.yml)
+[![Discord](https://img.shields.io/discord/1068976834382925865)](https://discord.gg/ZjZadyC7PK)
+
+</div>
+
+
+
 <h1 align="center">
   <img src="imgs/nan/nan.svg" alt="Dainemo Logo" width="400" height="250"/>
 </h1>
