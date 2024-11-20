@@ -1,13 +1,13 @@
-<h1 align='center'><b>nanoTorch</b></h1>
+<h1 align='center'><b>nano</b></h1>
 <p align="center">
   <img src="imgs/nan/nan.svg" alt="Dainemo Logo" width="400"/>
 </p>
 <p align='center'>
     A PyTorch like AI Engine from scratch in C programming language
 </p>
-<p align="center">
+<!-- <p align="center">
   <img src="imgs/cerebrix.png" alt="Dainemo Logo" width="150"/>
-</p>
+</p> -->
 
 <p>
 NanoTorch is a lightweight, minimalistic deep learning library written in pure       C, designed to bring essential neural network functionalities to low-resource environments. Inspired by projects like tinygrad, NanoTorch aims to provide a foundational toolkit for machine learning enthusiasts, embedded developers, and researchers who want to experiment with deep learning concepts in an efficient, resource-conscious manner.
