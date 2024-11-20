@@ -3,8 +3,8 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="/imgs/16.svg">
-  <img alt="tiny corp logo" src="/imgs/nan.svg" width="50%" height="50%">
+  <source media="(prefers-color-scheme: light)" srcset="/imgs/nan/16.svg">
+  <img alt="tiny corp logo" src="/imgs/nan/nan.svg" width="50%" height="50%">
 </picture>
 
 nano: For something between [PyTorch](https://github.com/pytorch/pytorch) and [karpathy/micrograd](https://github.com/karpathy/micrograd). Maintained by [tiny corp](https://tinygrad.org).
