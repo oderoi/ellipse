@@ -34,13 +34,13 @@ nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpath
 </p> -->
 
 <p>
-Nano is a lightweight, minimalistic high-performance numerical computing library for deep learning written in pure C, designed to bring essential neural network functionalities to low-resource environments. Inspired by projects like tinygrad, Nano aims to provide a foundational toolkit for machine learning enthusiasts, embedded developers, and researchers who want to experiment with deep learning concepts in an efficient, resource-conscious manner.
+Nano is a lightweight, minimalistic high-performance numerical computing library for deep learning written in pure C, designed to bring essential neural network functionalities to low-resource environments. Inspired by projects like minigrad, tinygrad, XLA and PyTorch, Nano aims to provide a foundational toolkit for machine learning enthusiasts, embedded developers, and researchers who want to experiment with deep learning concepts in an efficient, resource-conscious manner.
 </p>
 
 #### Key Features
 
 -  Lightweight Design: Focused on simplicity, Nano provides core deep learning operations without heavy dependencies.
--  Pure C Implementation: Built entirely in C, NanoTorch is designed to be portable and optimized for low-level manipulation.
+-  Pure C Implementation: Built entirely in C, Nano is designed to be portable and optimized for low-level manipulation.
 -  Gradient Calculation: Includes basic automatic differentiation to support backpropagation for training models.
 -  Flexible Tensor Operations: Supports fundamental tensor operations required for deep learning.
 -  Modular Architecture: Easy to extend or modify, allowing you to explore and experiment with new layers, optimizers, and more.
@@ -54,7 +54,7 @@ NanoTorch is perfect for those looking to:
 
 #### Getting Started
 
-This repository includes setup instructions, usage examples, and documentation to help you dive into developing with NanoTorch. Explore the source code to understand how core deep learning concepts like tensor operations and automatic differentiation are implemented.
+This repository includes setup instructions, usage examples, and documentation to help you dive into developing with Nano. Explore the source code to understand how core deep learning concepts like tensor operations and automatic differentiation are implemented.
 
 #### Contributing
 
