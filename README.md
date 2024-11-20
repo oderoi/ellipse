@@ -34,23 +34,23 @@ nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpath
 </p> -->
 
 <p>
-NanoTorch is a lightweight, minimalistic deep learning library written in pure       C, designed to bring essential neural network functionalities to low-resource environments. Inspired by projects like tinygrad, NanoTorch aims to provide a foundational toolkit for machine learning enthusiasts, embedded developers, and researchers who want to experiment with deep learning concepts in an efficient, resource-conscious manner.
+Nano is a lightweight, minimalistic high-performance numerical computing library for deep learning written in pure C, designed to bring essential neural network functionalities to low-resource environments. Inspired by projects like tinygrad, Nano aims to provide a foundational toolkit for machine learning enthusiasts, embedded developers, and researchers who want to experiment with deep learning concepts in an efficient, resource-conscious manner.
 </p>
 
 #### Key Features
 
--	Lightweight Design: Focused on simplicity, NanoTorch provides core deep learning operations without heavy dependencies.
--	Pure C Implementation: Built entirely in C, NanoTorch is designed to be portable and optimized for low-level manipulation.
--	 Gradient Calculation: Includes basic automatic differentiation to support backpropagation for training models.
--	 Flexible Tensor Operations: Supports fundamental tensor operations required for deep learning.
--	 Modular Architecture: Easy to extend or modify, allowing you to explore and experiment with new layers, optimizers, and more.
+-  Lightweight Design: Focused on simplicity, Nano provides core deep learning operations without heavy dependencies.
+-  Pure C Implementation: Built entirely in C, NanoTorch is designed to be portable and optimized for low-level manipulation.
+-  Gradient Calculation: Includes basic automatic differentiation to support backpropagation for training models.
+-  Flexible Tensor Operations: Supports fundamental tensor operations required for deep learning.
+-  Modular Architecture: Easy to extend or modify, allowing you to explore and experiment with new layers, optimizers, and more.
 
 #### Who is This For?
 
 NanoTorch is perfect for those looking to:
--	 Understand the inner workings of a deep learning library from the ground up.
--	 Run simple neural networks in resource-limited environments.
--	 Prototype and test custom ML operations in C.
+-  Understand the inner workings of a deep learning library from the ground up.
+-  Run simple neural networks in resource-limited environments.
+-  Prototype and test custom ML operations in C.
 
 #### Getting Started
 
@@ -58,6 +58,4 @@ This repository includes setup instructions, usage examples, and documentation t
 
 #### Contributing
 
-NanoTorch is open for contributions! Whether you’re fixing bugs, adding new features, or experimenting with optimizations, we welcome your input.
-
-
+Nano is open for contributions! Whether you’re fixing bugs, adding new features, or experimenting with optimizations, we welcome your input.
