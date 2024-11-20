@@ -217,6 +217,8 @@ s_1 (1 - s_1) & -s_1 s_2 & \cdots & -s_1 s_n \\
 | **Hinge Loss (SVM)**            | Classification         | Support Vector Machines (SVM)           | Efficient for margin classifiers     | Not suitable for probabilistic tasks   |   ❌   |
 | **Huber Loss**                  | Regression             | Regression with outliers                | Robust to outliers, smooth           | Requires tuning of threshold $\delta$  |   ❌   |    
 | **KL Divergence**               | Probabilistic Models   |Variational inference, generative models | Compares probability distributions   | Asymmetric, computationally expensive  |   ❌   |
+| **NEGATIVE log likelyhood**         | Classification   | - | -   | -  |   ❌   |
+
 
 **i.    Mean Squared Error (MSE) Loss**
 
@@ -341,10 +343,14 @@ $\text{KL Divergence} = \sum_{i=1}^{n} p_i \log\left(\frac{p_i}{q_i}\right)$
 -	Extensions: Planned support for optimizations like Stochastic Gradient Descent (SGD) and other optimizers (e.g., Adam) as the library progresses.
 ### Optimizers
 
-| Task  | Status |
-|-------|--------|
-| ADAM  |   ❌   |
-| SGD   |   ❌   |
+| Task      | Status |
+|-----------|--------|
+| ADAM      |   ❌   |
+| SGD       |   ❌   |
+| RMS PROP  |   ❌   |
+| ADADELTA  |   ❌   |
+| ADAGRAD   |   ❌   |
+|  ADAMW    |   ❌   |
 
 
 5.	Training and Evaluation Loop
