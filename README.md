@@ -91,7 +91,7 @@ NanoTorch is designed to provide an accessible, low-level deep learning framewor
 | Transpose          | $(\mathbf{A}^\top){i,j} = (\mathbf{A}){j,i}$                              |   ✅   |
 | Flatten            | $\text{Flatten}(A_{m,n}) = \[A_{0,0},\  A_{0,1}, \dots\,\  A_{m-1, n-1}]$ |   ✅   |
 | Reshape            | $\text{Reshape}(A_{m,n}) = A_{n,m}$                                       |   ✅   |
-| Identity matrix (eye)            | $\text{The Identity matrix}{ I_n }\text{ of size }{ n} { x } { n }\text{ is defined as:} \ \ {I_ij} = \bigg{ \frac{1 \text{ if } i = j}{0 \text{ if } i\ne j}$                                       |   ✅   |
+| Identity matrix (eye)            | $\text{The Identity matrix}{ I_n }\text{ of size }{ n} { x } { n }\text{ is defined as:} \ \ {I_ij} = \bigg( \frac{1 \text{ if } i = j}{0 \text{ if } i\ne j}$                                       |   ✅   |
 
 
 Where:
