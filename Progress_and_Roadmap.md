@@ -1,4 +1,21 @@
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="/imgs/nan/16.svg">
+  <img alt="tiny corp logo" src="/imgs/nan/nan.svg" width="50%" height="50%">
+</picture>
+
+nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nano corp](https://github.com/oderoi/nanoTorch/tree/main).
+
 <h1 align='center'><b>Progress and Roadmap</b></h1>
+
+<h3>
+
+[Home Page](README.md) | [Documentation](https://docs.tinygrad.org/)
+
+</h3>
+
+</div>
 
 NanoTorch is designed to provide an accessible, low-level deep learning framework with a focus on simplicity and modularity. Here’s a roadmap showcasing its primary components and future progress milestones:
 
