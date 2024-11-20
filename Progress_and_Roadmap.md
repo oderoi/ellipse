@@ -5,7 +5,7 @@
   <img alt="tiny corp logo" src="/imgs/nan/nan.svg" width="50%" height="50%">
 </picture>
 
-nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nano corp](https://github.com/oderoi/nanoTorch/tree/main).
+Nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nano corp](https://github.com/oderoi/nanoTorch/tree/main).
 
 
 <h3>
@@ -20,7 +20,7 @@ nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpath
 
 <h1 align='center'><b>Progress and Roadmap</b></h1>
 
-NanoTorch is designed to provide an accessible, low-level deep learning framework with a focus on simplicity and modularity. Here’s a roadmap showcasing its primary components and future progress milestones:
+Nano is designed to provide an accessible, low-level deep learning framework with a focus on simplicity and modularity. Here’s a roadmap showcasing its primary components and future progress milestones:
 
 ## Core Components
 
