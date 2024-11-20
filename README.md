@@ -7,25 +7,25 @@
   <img alt="tiny corp logo" src="/imgs/nan/nan.svg" width="50%" height="50%">
 </picture>
 
-nano: For something between [PyTorch](https://github.com/pytorch/pytorch) and [karpathy/micrograd](https://github.com/karpathy/micrograd). Maintained by [tiny corp](https://tinygrad.org).
+nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nano corp](https://github.com/oderoi/nanoTorch/tree/main).
 
 <h3>
 
-[Homepage](https://github.com/tinygrad/tinygrad) | [Documentation](https://docs.tinygrad.org/) | [Discord](https://discord.gg/ZjZadyC7PK)
+[Homepage](https://github.com/oderoi/nanoTorch/tree/main) | [Documentation](https://docs.tinygrad.org/)
 
 </h3>
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/tinygrad/tinygrad)](https://github.com/tinygrad/tinygrad/stargazers)
+<!-- [![GitHub Repo stars](https://img.shields.io/github/stars/tinygrad/tinygrad)](https://github.com/tinygrad/tinygrad/stargazers)
 [![Unit Tests](https://github.com/tinygrad/tinygrad/actions/workflows/test.yml/badge.svg)](https://github.com/tinygrad/tinygrad/actions/workflows/test.yml)
-[![Discord](https://img.shields.io/discord/1068976834382925865)](https://discord.gg/ZjZadyC7PK)
+[![Discord](https://img.shields.io/discord/1068976834382925865)](https://discord.gg/ZjZadyC7PK) -->
 
 </div>
 
 
 
-<h1 align="center">
+<!-- <h1 align="center">
   <img src="imgs/nan/nan.svg" alt="Dainemo Logo" width="400" height="250"/>
-</h1>
+</h1> -->
 <p align='center'>
     A PyTorch like AI Engine from scratch in C programming language
 </p>
