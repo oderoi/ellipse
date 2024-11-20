@@ -11,7 +11,7 @@ nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpath
 
 <h3>
 
-[Progress and Roadmap](Progress_and_Roadmap.md) | [Documentation](https://docs.tinygrad.org/)
+[Progress and Roadmap](Progress_and_Roadmap.md) | [Documentation](documentation.md)
 
 </h3>
 
