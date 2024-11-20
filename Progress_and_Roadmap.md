@@ -9,15 +9,12 @@ nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpath
 
 
 <h3>
-
 [Home Page](README.md) | [Documentation](https://docs.tinygrad.org/)
-
 </h3>
 
 </div>
 
 ---
-
 
 <h1 align='center'><b>Progress and Roadmap</b></h1>
 
