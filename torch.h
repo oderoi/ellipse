@@ -9,6 +9,8 @@
 #define MAX_PREVS 3
 
 struct Tensor *transpose(struct Tensor *self);
+struct Tensor *reshape(struct Tensor *self, int *shape, int ndim); 
+struct Tensor *flatten(struct Tensor *self);
 
 typedef union
 {
@@ -68,6 +70,8 @@ typedef struct Tensor{
     bool requires_grad;
     int num_prevs;
     struct Tensor *(*T)(struct Tensor *self);
+    struct Tensor *(*reshape)(struct Tensor *self, int *shape, int ndim);
+    struct Tensor *(*flatten)(struct Tensor *self);
 }Tensor;
 
 static size_t dtype_size(DType dtype){
@@ -139,6 +143,8 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
     t->op = -1;
     t->num_prevs = 0;
     t->T=transpose;
+    t->reshape = reshape;
+    t->flatten = flatten;
 
     t->dims = copy_dims(dims, ndim);
     if(!t->dims){
@@ -228,6 +234,12 @@ static int T_index(int index, int rows, int cols){
     return col * rows + row;
 }
 
+static int Reshape_index(int index, int rows, int cols){
+    int row = index / cols;
+    int col = index % cols;
+    return row * cols + col;
+}
+
 Tensor * transpose(Tensor *self){
     if(!self || self->ndim != 2){
         fprintf(stderr, "Cannot transpose a tensor with %d dimensions\n", self->ndim);
@@ -268,8 +280,144 @@ Tensor * transpose(Tensor *self){
                 t->data.int64[t_idx] = self->data.int64[i];
             }
             break;
+        default:
+            t_free(t);
+            fprintf(stderr, "Unsupported data type \n");
+            return NULL;
     }
 
+    return t;
+}
+
+Tensor * reshape(Tensor *self, int *dims, int ndim){
+    if(!self || self->ndim!= 2){
+        fprintf(stderr, "Cannot reshape a tensor with %d dimensions\n", self->ndim);
+        return NULL;
+    }
+
+    int size = total_size(dims, ndim);
+    if(size!= self->size){
+        fprintf(stderr, "Reshaping tensor of size %d to %d is not possible\n", self->size, size);
+        return NULL;
+    }
+
+    Tensor * t = tensor(NULL, self->dtype, dims, ndim, self->requires_grad);
+    if(!t) return NULL;
+
+    int rows = self->dims[0];
+    int cols = self->dims[1];
+
+    switch (self->dtype){
+        case FLOAT32:
+            for (int i = 0; i < size; i++){
+                int s_idx = Reshape_index(i, rows, cols);
+                t->data.float32[i] = self->data.float32[s_idx];
+            }
+            break;
+        case FLOAT64:
+            for (int i = 0; i < size; i++){
+                int s_idx = Reshape_index(i, rows, cols);
+                t->data.float64[i] = self->data.float64[s_idx];
+            }
+            break;
+        case INT32:
+            for (int i = 0; i < size; i++){
+                int s_idx = Reshape_index(i, rows, cols);
+                t->data.int32[i] = self->data.int32[s_idx];
+            }
+            break;
+        case INT64:
+            for (int i = 0; i < size; i++){
+                int s_idx = Reshape_index(i, rows, cols);
+                t->data.int64[i] = self->data.int64[s_idx];
+            }
+            break;
+        default:
+            t_free(t);
+            fprintf(stderr, "Unsupported data type \n");
+            return NULL;
+    }
+    return t;
+}
+
+Tensor * flatten(Tensor * self){
+    if(!self || self->ndim!= 2){
+        fprintf(stderr, "Cannot flatten a tensor with %d dimensions\n", self->ndim);
+        return NULL;
+    }
+
+    int size = total_size(self->dims, self->ndim);
+    if(size!= self->size){
+        fprintf(stderr, "Flattening tensor of size %d to %d is not possible\n", self->size, size);
+        return NULL;
+    }
+
+    Tensor * t = tensor(NULL, self->dtype, &size, 1, self->requires_grad);
+    if(!t) return NULL;
+
+    int rows = self->dims[0];
+    int cols = self->dims[1];
+
+    switch (self->dtype){
+        case FLOAT32:
+            for (int i = 0; i < size; i++){
+                t->data.float32[i] = self->data.float32[Reshape_index(i, rows, cols)];
+            }
+            break;
+        case FLOAT64:
+            for (int i = 0; i < size; i++){
+                t->data.float64[i] = self->data.float64[Reshape_index(i, rows, cols)];
+            }
+            break;
+        case INT32:
+            for (int i = 0; i < size; i++){
+                t->data.int32[i] = self->data.int32[Reshape_index(i, rows, cols)];
+            }
+            break;
+        case INT64:
+            for (int i = 0; i < size; i++){
+                t->data.int64[i] = self->data.int64[Reshape_index(i, rows, cols)];
+            }
+            break;
+        default:
+            t_free(t);
+            fprintf(stderr, "Unsupported data type \n");
+            return NULL;  
+    }
+    return t;
+}
+
+Tensor * eye(DType dtype,int dim, bool requires_grad){
+    Tensor *t = tensor(NULL, dtype, (int[]){dim, dim}, (int)2, requires_grad);
+    if(!t) return NULL;
+
+    t->size = total_size(t->dims, t->ndim);
+    switch (dtype){
+        case FLOAT32:
+            for (int i = 0; i < t->size; i++){
+                t->data.float32[i] = (i / t->dims[1]) == (i % t->dims[1])? 1.0f : 0.0f;
+            }
+            break;
+        case FLOAT64:
+            for (int i = 0; i < t->size; i++){
+                t->data.float64[i] = (i / t->dims[1]) == (i % t->dims[1])? 1.0 : 0.0;
+            }
+            break;
+        case INT32:
+            for (int i = 0; i < t->size; i++){
+                t->data.int32[i] = (i / t->dims[1]) == (i % t->dims[1])? 1 : 0;
+            }
+            break;
+        case INT64:
+            for(int i=0; i<t->size; i++){
+                    t->data.int64[i] = (i / t->dims[1]) == (i % t->dims[1])? 1 : 0;
+            }
+            break;
+        default:
+            t_free(t);
+            fprintf(stderr, "Unsupported data type \n");
+            return NULL;
+    }
     return t;
 }
 
@@ -388,7 +536,7 @@ Tensor * randd(DType dtype, int * dims, int ndim, bool requires_grad){
             break;
         case INT32:
         case INT64:
-            free(t);
+            t_free(t);
             fprintf(stderr," \"randd\" not implemented for \'int\' dtype \n"); 
             return NULL;
             // break;
