@@ -17,4 +17,4 @@ nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpath
 
 ---
 
-<h1 align='center'><b>Document</b></h1>
+<h1 align='center'><b>Documentation</b></h1>
