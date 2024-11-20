@@ -7,13 +7,15 @@
 
 nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nano corp](https://github.com/oderoi/nanoTorch/tree/main).
 
-<h1 align='center'><b>Progress and Roadmap</b></h1>
 
 <h3>
 
 [Home Page](README.md) | [Documentation](https://docs.tinygrad.org/)
 
 </h3>
+
+
+<h1 align='center'><b>Progress and Roadmap</b></h1>
 
 </div>
 
