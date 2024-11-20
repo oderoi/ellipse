@@ -19,6 +19,8 @@ nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpath
 
 </div>
 
+---
+
 NanoTorch is designed to provide an accessible, low-level deep learning framework with a focus on simplicity and modularity. Here’s a roadmap showcasing its primary components and future progress milestones:
 
 ## Core Components

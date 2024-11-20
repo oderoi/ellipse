@@ -21,7 +21,7 @@ nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpath
 
 </div>
 
-
+---
 
 <!-- <h1 align="center">
   <img src="imgs/nan/nan.svg" alt="Dainemo Logo" width="400" height="250"/>
