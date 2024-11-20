@@ -1,7 +1,7 @@
-<h1 align='center'><b>nano</b></h1>
-<p align="center">
+<!-- <h1 align='center'><b>nano</b></h1> -->
+<h1 align="center">
   <img src="imgs/nan/nan.svg" alt="Dainemo Logo" width="400"/>
-</p>
+</h1>
 <p align='center'>
     A PyTorch like AI Engine from scratch in C programming language
 </p>
