@@ -17,4 +17,27 @@ nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpath
 
 ---
 
-<h1 align='center'><b>Documentation</b></h1>
+<h1 align='center'><b>nan Documentation</b></h1>
+
+Welcome to the nan documentation. This page is for those who are really want to make a change in AI, if it is you, you are welcome.
+
+To get this library in your local machine, you can download it from GitHub. See...
+
+```bash
+git clone https://github.com/oderoi/nanoTorch.git 
+```
+
+This library is created in C and it has no frontend yet, so you will use C to use it.
+
+# nan Usage
+
+The one thing you will need to import is **torch.h** header.
+
+```C
+#include  "torch.h"
+```
+In C we don't use `import` like in Python, we use `#include`.
+
+Amaizing enough `torch.h` header is the library in itself and it is just a single file. It contain functions to help you perform math operations for machine leaning and automatic differentiation capabilities.
+
+For now nan library operations are not lazy but Backpropagation is lazy, meaning it won't do backward pass operations until you realize.
