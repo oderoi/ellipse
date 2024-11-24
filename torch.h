@@ -127,6 +127,54 @@ void t_free(Tensor* t){
     free(t);
 }
 
+static int T_index(int index, int rows, int cols){
+    int row = index / cols;
+    int col = index % cols;
+    return col * rows + row;
+}
+
+static int Reshape_index(int index, int rows, int cols){
+    int row = index / cols;
+    int col = index % cols;
+    return row * cols + col;
+}
+
+static int shape_index(int index, int rows, int cols){
+    int row =index/cols;
+    int col = index % cols;
+    return row * cols + col;
+}
+
+static void grad_mem_init(Tensor * self){
+    if (self->dtype == FLOAT32){
+        if(!self->requires_grad){
+            self->grad.float32 = (float *)calloc(self->size, sizeof(float));
+            if(!self->grad.float32){
+                fprintf(stderr, "Memory allocation for grad failed (FLOAT32)\n");
+                t_free(self);
+                return;
+            }
+        }else{
+            self->grad.float32 = NULL;
+        }
+    }else if(self->dtype == FLOAT64){
+        if(!self->requires_grad){
+            self->grad.float64 = (double *)calloc(self->size, sizeof(double));
+            if(!self->grad.float64){
+                fprintf(stderr, "Memory allocation for grad failed (FLOAT64)\n");
+                t_free(self);
+                return;
+            }
+        }else{
+            self->grad.float64 = NULL;
+        }
+    }else{
+        fprintf(stderr, "Unsupported dtype for grad memory allocation\n");
+        t_free(self);
+        return;
+    }
+}
+
 Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_grad){
     if(!dims || ndim <= 0) return NULL;
     //allocate memory for the tensor structure
@@ -164,16 +212,7 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
             if(data){
                 memcpy(t->data.float32, data, t->size*sizeof(float));
             }
-            if(t->requires_grad==true){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float32 = NULL;
-            }
+            grad_mem_init(t);
             break;
         case FLOAT64:
             t->data.float64 = (double*) calloc(t->size, sizeof(double));
@@ -185,16 +224,7 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
             if(data){
                 memcpy(t->data.float64, data, t->size*sizeof(double));
             }
-            if(t->requires_grad==true){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
-            }
+            grad_mem_init(t);
             break;
         case INT32:
             t->data.int32 = (int32_t*) calloc(t->size, sizeof(int32_t));
@@ -206,7 +236,6 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
             if(data){
                 memcpy(t->data.int32, data, t->size*sizeof(int32_t));
             }
-            t->grad.float32 = NULL;
             break;
         case INT64:
             t->data.int64 = (int64_t*) calloc(t->size, sizeof(int64_t));
@@ -218,7 +247,6 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
             if(data){
                 memcpy(t->data.int64, data, t->size*sizeof(int64_t));
             }
-            t->grad.float64 = NULL;
             break;
         default:
             fprintf(stderr, "Unsupported data type\n");
@@ -228,56 +256,53 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
     return t;
 }
 
-static int T_index(int index, int rows, int cols){
-    int row = index / cols;
-    int col = index % cols;
-    return col * rows + row;
-}
-
-static int Reshape_index(int index, int rows, int cols){
-    int row = index / cols;
-    int col = index % cols;
-    return row * cols + col;
-}
-
 Tensor * transpose(Tensor *self){
     if(!self || self->ndim != 2){
         fprintf(stderr, "Cannot transpose a tensor with %d dimensions\n", self->ndim);
         return NULL;
     }
+
+    int rows = self->dims[0];
+    int cols = self->dims[1];
     
-    int new_dims[2] = {self->dims[1], self->dims[0]};
+    int new_dims[2] = {cols, rows};
 
     Tensor * t = tensor(NULL, self->dtype, new_dims, 2, self->requires_grad);
     if(!t) return NULL;
 
-    int rows = self->dims[0];
-    int cols = self->dims[1];
-
     switch (self->dtype){
         case FLOAT32:
-            for (int i = 0; i < self->size; i++)
-            {
+            for (int i = 0; i < self->size; i++){
+                int idx = shape_index(i,rows, cols);
                 int t_idx = T_index(i, rows, cols);
-                t->data.float32[t_idx] = self->data.float32[i];
+                t->data.float32[t_idx] = self->data.float32[idx];
+                if(!self->requires_grad){
+                    t->grad.float32[t_idx]=self->grad.float32[idx];
+                }
             }
             break;
         case FLOAT64:
             for (int i = 0; i < self->size; i++){
+                int idx = shape_index(i, rows, cols);
                 int t_idx = T_index(i, rows, cols);
-                t->data.float64[t_idx] = self->data.float64[i];
+                t->data.float64[t_idx] = self->data.float64[idx];
+                if(!self->requires_grad){
+                    t->grad.float64[t_idx] = self->grad.float64[idx];
+                }
             }
             break;
         case INT32:
             for (int i = 0; i < self->size; i++){
+                int idx = shape_index(i, rows, cols);
                 int t_idx = T_index(i, rows, cols);
-                t->data.int32[t_idx] = self->data.int32[i];
+                t->data.int32[t_idx] = self->data.int32[idx];
             }
             break;
         case INT64:
             for (int i = 0; i < self->size; i++){
+                int idx = shape_index(i, rows, cols);
                 int t_idx = T_index(i, rows, cols);
-                t->data.int64[t_idx] = self->data.int64[i];
+                t->data.int64[t_idx] = self->data.int64[idx];
             }
             break;
         default:
@@ -285,7 +310,6 @@ Tensor * transpose(Tensor *self){
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
-
     return t;
 }
 
@@ -304,32 +328,46 @@ Tensor * reshape(Tensor *self, int *dims, int ndim){
     Tensor * t = tensor(NULL, self->dtype, dims, ndim, self->requires_grad);
     if(!t) return NULL;
 
-    int rows = self->dims[0];
-    int cols = self->dims[1];
+    int old_rows = self->dims[0];
+    int old_cols = self->dims[1];
+
+
+    int new_rows = t->dims[0];
+    int new_cols = t->dims[1];
 
     switch (self->dtype){
         case FLOAT32:
             for (int i = 0; i < size; i++){
-                int s_idx = Reshape_index(i, rows, cols);
-                t->data.float32[i] = self->data.float32[s_idx];
+                int s_idx = Reshape_index(i, new_rows, new_cols);
+                int idx = shape_index(i, old_rows, old_cols);
+                t->data.float32[s_idx] = self->data.float32[idx];
+                if(!self->requires_grad){
+                    t->grad.float32[s_idx] = self->grad.float32[idx];
+                }
             }
             break;
         case FLOAT64:
             for (int i = 0; i < size; i++){
-                int s_idx = Reshape_index(i, rows, cols);
-                t->data.float64[i] = self->data.float64[s_idx];
+                int s_idx = Reshape_index(i, new_rows, new_cols);
+                int idx = shape_index(i, old_rows, old_cols);
+                t->data.float64[s_idx] = self->data.float64[idx];
+                if(!self->requires_grad){
+                    t->grad.float64[s_idx] = self->grad.float64[idx];
+                }
             }
             break;
         case INT32:
             for (int i = 0; i < size; i++){
-                int s_idx = Reshape_index(i, rows, cols);
-                t->data.int32[i] = self->data.int32[s_idx];
+                int s_idx = Reshape_index(i, new_rows, new_cols);
+                int idx = shape_index(i, old_rows, old_cols);
+                t->data.int32[s_idx] = self->data.int32[idx];
             }
             break;
         case INT64:
             for (int i = 0; i < size; i++){
-                int s_idx = Reshape_index(i, rows, cols);
-                t->data.int64[i] = self->data.int64[s_idx];
+                int s_idx = Reshape_index(i, new_rows, new_cols);
+                int idx = shape_index(i, old_rows, old_cols);
+                t->data.int64[s_idx] = self->data.int64[idx];
             }
             break;
         default:
@@ -361,22 +399,32 @@ Tensor * flatten(Tensor * self){
     switch (self->dtype){
         case FLOAT32:
             for (int i = 0; i < size; i++){
-                t->data.float32[i] = self->data.float32[Reshape_index(i, rows, cols)];
+                int idx = shape_index(i, rows, cols);
+                t->data.float32[i] = self->data.float32[idx];
+                if(!self->requires_grad){
+                    t->grad.float32[i] = self->grad.float32[idx];
+                }
             }
             break;
         case FLOAT64:
             for (int i = 0; i < size; i++){
-                t->data.float64[i] = self->data.float64[Reshape_index(i, rows, cols)];
+                int idx = shape_index(i, rows, cols);
+                t->data.float64[i] = self->data.float64[idx];
+                if(!self->requires_grad){
+                    t->grad.float64[i] = self->grad.float64[idx];
+                }
             }
             break;
         case INT32:
             for (int i = 0; i < size; i++){
-                t->data.int32[i] = self->data.int32[Reshape_index(i, rows, cols)];
+                int idx = shape_index(i, rows, cols);
+                t->data.int32[i] = self->data.int32[idx];
             }
             break;
         case INT64:
             for (int i = 0; i < size; i++){
-                t->data.int64[i] = self->data.int64[Reshape_index(i, rows, cols)];
+                int idx = shape_index(i, rows, cols);
+                t->data.int64[i] = self->data.int64[idx];
             }
             break;
         default:
@@ -395,22 +443,26 @@ Tensor * eye(DType dtype,int dim, bool requires_grad){
     switch (dtype){
         case FLOAT32:
             for (int i = 0; i < t->size; i++){
-                t->data.float32[i] = (i / t->dims[1]) == (i % t->dims[1])? 1.0f : 0.0f;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.float32[idx] = (i / t->dims[1]) == (i % t->dims[1])? 1.0f : 0.0f;
             }
             break;
         case FLOAT64:
             for (int i = 0; i < t->size; i++){
-                t->data.float64[i] = (i / t->dims[1]) == (i % t->dims[1])? 1.0 : 0.0;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.float64[idx] = (i / t->dims[1]) == (i % t->dims[1])? 1.0 : 0.0;
             }
             break;
         case INT32:
             for (int i = 0; i < t->size; i++){
-                t->data.int32[i] = (i / t->dims[1]) == (i % t->dims[1])? 1 : 0;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.int32[idx] = (i / t->dims[1]) == (i % t->dims[1])? 1 : 0;
             }
             break;
         case INT64:
             for(int i=0; i<t->size; i++){
-                    t->data.int64[i] = (i / t->dims[1]) == (i % t->dims[1])? 1 : 0;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                    t->data.int64[idx] = (i / t->dims[1]) == (i % t->dims[1])? 1 : 0;
             }
             break;
         default:
@@ -426,24 +478,27 @@ Tensor * zeros(DType dtype, int * dims, int ndim, bool requires_grad){
     if(!t)return NULL;
     switch(dtype){
         case FLOAT32:
-            for (int i = 0; i < t->size; i++)
-            {
-               t->data.float32[i] = 0.0f;
+            for (int i = 0; i < t->size; i++){
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+               t->data.float32[idx] = 0.0f;
             }
             break;
         case FLOAT64:
             for(int i=0; i<t->size; i++){
-                t->data.float64[i] = 0.0;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.float64[idx] = 0.0;
             }
             break;
         case INT32:
             for(int i=0; i<t->size; i++){
-                t->data.int32[i] = 0;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.int32[idx] = 0;
             }
             break;
         case INT64:
             for(int i=0; i<t->size; i++){
-                t->data.int64[i] = 0;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.int64[idx] = 0;
             }
             break;
         default:
@@ -460,16 +515,28 @@ Tensor * ones(DType dtype, int * dims, int ndim, bool requires_grad) {
     //Fill with ones based on dtype
     switch (dtype){
         case FLOAT32:
-            for (int i = 0; i < t->size; i++) t->data.float32[i] = 1.0f;
+            for (int i = 0; i < t->size; i++){
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.float32[idx] = 1.0f;
+            } 
             break;
         case FLOAT64:
-            for (int i = 0; i < t->size; i++) t->data.float64[i] = 1.0;
+            for (int i = 0; i < t->size; i++){
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.float64[idx] = 1.0;
+            } 
             break;
         case INT32:
-            for (int i = 0; i < t->size; i++) t->data.int32[i] = 1;
+            for (int i = 0; i < t->size; i++) {
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.int32[idx] = 1;
+            }
             break;
         case INT64:
-            for (int i = 0; i < t->size; i++) t->data.int64[i] = 1;
+            for (int i = 0; i < t->size; i++) {
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.int64[idx] = 1;
+            }
             break;
         default:
             free(t);
@@ -499,14 +566,16 @@ Tensor * randn(DType dtype, int *dims, int ndim, bool requires_grad){
             for (int i = 0; i < t->size; i++){
                 float u1 = (float)rand() / (float)RAND_MAX;
                 float u2 = (float)rand() / (float)RAND_MAX;
-                t->data.float32[i] =(float) sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.float32[idx] =(float) sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
             }
             break;
         case FLOAT64:
             for (int i = 0; i < t->size; i++){
                 double u1 = (double)rand() / (double)RAND_MAX;
                 double u2 = (double)rand() / (double)RAND_MAX;
-                t->data.float64[i] =(double) sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.float64[idx] =(double) sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
             }
             break;
         case INT32:
@@ -529,10 +598,16 @@ Tensor * randd(DType dtype, int * dims, int ndim, bool requires_grad){
     srand(time(NULL));
     switch (dtype){
         case FLOAT32:
-            for (int i = 0; i < t->size; i++) t->data.float32[i] = (float)rand() / (float)RAND_MAX;
+            for (int i = 0; i < t->size; i++) {
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.float32[idx] = (float)rand() / (float)RAND_MAX;
+                }
             break;
         case FLOAT64:
-            for (int i = 0; i < t->size; i++) t->data.float64[i] = (double)rand() / (double)RAND_MAX;
+            for (int i = 0; i < t->size; i++){
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                t->data.float64[idx] = (double)rand() / (double)RAND_MAX;
+                }
             break;
         case INT32:
         case INT64:
@@ -548,22 +623,24 @@ Tensor * randd(DType dtype, int * dims, int ndim, bool requires_grad){
     return t;    
 }
 
+void grad_init(Tensor * self){
+    if(!self) return;
 
-void grad_init(Tensor * loss){
-    if(!loss) return;
-    if(loss->dtype == FLOAT32){
-        if(!loss->requires_grad){
-            for (int i = 0; i < loss->size; i++)
-            {
-                loss->grad.float32[i] = 1.0f;
+    if(self->dtype == FLOAT64){
+        if(!self->requires_grad){
+            for (int i = 0; i < self->size; i++){
+                int idx = shape_index(i, self->dims[0], self->dims[1]);
+                self->grad.float64[i] = 1.0;
             }
         }
-    } else if(loss->dtype == FLOAT64){
-        if(!loss->requires_grad){
-            for (int i = 0; i < loss->size; i++)
-            {
-                loss->grad.float64[i] = 1.0;
+    }
+    if(self->dtype == FLOAT32){
+        if(!self->requires_grad){
+            for (int i = 0; i < self->size; i++){
+                int idx = shape_index(i, self->dims[0], self->dims[1]);
+                self->grad.float32[i] = 1.0f;
             }
+            // memset(self->grad.float32, 1.0f, self->size*sizeof(float));
         }
     }
 }
@@ -575,46 +652,42 @@ Tensor * add(Tensor * t1, Tensor * t2){
     for(int i=0; i<t1->ndim; i++){
         if(t1->dims[i] != t2->dims[i]) return NULL;
     }
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+
+    int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
+
     switch(t1->dtype){
         case FLOAT32:
             for(int i=0; i<t1->size; i++){
-                t->data.float32[i] = t1->data.float32[i] + t2->data.float32[i];
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
+                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
+                t->data.float32[idx] = t1->data.float32[idx1] + t2->data.float32[idx2];
             }
-            if(!t1->requires_grad || !t2->requires_grad){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            }else {
-                t->grad.float32 = NULL;
-            }
+            
             break;
         case FLOAT64:
             for(int i=0; i<t1->size; i++){
-                t->data.float64[i] = t1->data.float64[i] + t2->data.float64[i];
-            }
-            if(!t1->requires_grad || !t2->requires_grad){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
+                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
+                t->data.float64[idx] = t1->data.float64[idx1] + t2->data.float64[idx2];
             }
             break;
         case INT32:
             for(int i=0; i<t1->size; i++){
-                t->data.int32[i] = t1->data.int32[i] + t2->data.int32[i];
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
+                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
+                t->data.int32[idx] = t1->data.int32[idx1] + t2->data.int32[idx2];
             }
             break;
         case INT64:
             for(int i=0; i<t1->size; i++){
-                t->data.int64[i] = t1->data.int64[i] + t2->data.int64[i];
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
+                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
+                t->data.int64[idx] = t1->data.int64[idx1] + t2->data.int64[idx2];
             }
             break;
         default:
@@ -622,7 +695,7 @@ Tensor * add(Tensor * t1, Tensor * t2){
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
-    t->requires_grad = (t1->requires_grad == true || t2->requires_grad == true) ? true : false;
+    
     t->op = ADD;
     t->prevs[0] = t1;
     t->prevs[1] = t2;
@@ -632,16 +705,20 @@ Tensor * add(Tensor * t1, Tensor * t2){
 
 void add_backward(Tensor * out){
     if(!out) return;
-    if(out->prevs[0]->requires_grad==true){
+    if(!out->prevs[0]->requires_grad){
         switch (out->dtype){
             case FLOAT32:
                 for(int i=0; i<out->size; i++){
-                    out->prevs[0]->grad.float32[i] += (float)1.0 * out->grad.float32[i];
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    int out_idx = shape_index(i, out->dims[0], out->dims[1]);
+                    out->prevs[0]->grad.float32[idx] += (float)1.0 * out->grad.float32[out_idx];
                 }
                 break;
             case FLOAT64:
                 for(int i=0; i<out->size; i++){
-                    out->prevs[0]->grad.float64[i] += (double)1.0 * out->grad.float64[i];
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    int out_idx = shape_index(i, out->dims[0], out->dims[1]);
+                    out->prevs[0]->grad.float64[idx] += (double)1.0 * out->grad.float64[out_idx];
                 }
                 break;
             default:
@@ -654,12 +731,16 @@ void add_backward(Tensor * out){
         switch (out->dtype){
             case FLOAT32:
                 for(int i=0; i<out->size; i++){
-                    out->prevs[1]->grad.float32[i] += (float)1.0 * out->grad.float32[i];
+                    int idx = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
+                    int out_idx = shape_index(i, out->dims[0], out->dims[1]);
+                    out->prevs[1]->grad.float32[idx] += (float)1.0 * out->grad.float32[out_idx];
                 }
                 break;
             case FLOAT64:
                 for(int i=0; i<out->size; i++){
-                    out->prevs[1]->grad.float64[i] += (double)1.0 * out->grad.float64[i];
+                    int idx = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
+                    int out_idx = shape_index(i, out->dims[0], out->dims[1]);
+                    out->prevs[1]->grad.float64[idx] += (double)1.0 * out->grad.float64[out_idx];
                 }
                 break;
             default:
@@ -679,53 +760,47 @@ Tensor * sub(Tensor * t1, Tensor * t2){
     for(int i =0; i < t1->ndim; i++){
         if(t1->dims[i]!= t2->dims[i]) return NULL;
     }
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+
+    int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
     switch(t1->dtype){
         case FLOAT32:
             for(int i=0; i<t1->size; i++){
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
+                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
                 t->data.float32[i] = t1->data.float32[i] - t2->data.float32[i];
-            }
-            if(!t1->requires_grad || !t2->requires_grad){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
             }
             break;
         case FLOAT64:
             for(int i=0; i<t1->size; i++){
-                t->data.float64[i] = t1->data.float64[i] - t2->data.float64[i];
-            }
-            if(!t1->requires_grad || !t2->requires_grad){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
+                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
+                t->data.float64[idx] = t1->data.float64[idx1] - t2->data.float64[idx2];
             }
             break;
         case INT32:
             for(int i=0; i<t1->size; i++){
-                t->data.int32[i] = t1->data.int32[i] - t2->data.int32[i];
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
+                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
+                t->data.int32[idx] = t1->data.int32[idx1] - t2->data.int32[idx2];
             }
             break;
         case INT64:
             for(int i=0; i<t1->size; i++){
-                t->data.int64[i] = t1->data.int64[i] - t2->data.int64[i];
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
+                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
+                t->data.int64[idx] = t1->data.int64[idx1] - t2->data.int64[idx2];
             }
         default:
             t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
-    t->requires_grad = (t1->requires_grad == true || t2->requires_grad == true) ? true : false;
+
     t->op = SUB;
     t->prevs[0] = t1;
     t->prevs[1] = t2;
@@ -739,12 +814,16 @@ void sub_backward(Tensor * out){
         switch (out->dtype){
             case FLOAT32:
                 for(int i=0; i<out->size; i++){
-                    out->prevs[0]->grad.float32[i] += (float)1.0 * out->grad.float32[i];
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    int out_idx = shape_index(i, out->dims[0], out->dims[1]);
+                    out->prevs[0]->grad.float32[idx] += (float)1.0 * out->grad.float32[out_idx];
                 }
                 break;
             case FLOAT64:
                 for(int i=0; i<out->size; i++){
-                    out->prevs[0]->grad.float64[i] += (double)1.0 * out->grad.float64[i];
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    int out_idx = shape_index(i, out->dims[0], out->dims[1]);
+                    out->prevs[0]->grad.float64[idx] += (double)1.0 * out->grad.float64[out_idx];
                 }
                 break;           
             default:
@@ -757,12 +836,16 @@ void sub_backward(Tensor * out){
         switch (out->dtype){
             case FLOAT32:
                 for(int i=0; i<out->size; i++){
-                    out->prevs[1]->grad.float32[i] += (float)-1.0 * out->grad.float32[i];
+                    int idx = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
+                    int out_idx = shape_index(i, out->dims[0], out->dims[1]);
+                    out->prevs[1]->grad.float32[idx] += (float)-1.0 * out->grad.float32[out_idx];
                 }
                 break;
             case FLOAT64:
                 for(int i=0; i<out->size; i++){
-                    out->prevs[1]->grad.float64[i] += (double)-1.0 * out->grad.float64[i];
+                    int idx = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
+                    int out_idx = shape_index(i, out->dims[0], out->dims[1]);
+                    out->prevs[1]->grad.float64[idx] += (double)-1.0 * out->grad.float64[out_idx];
                 }
                 break;
             default:
@@ -784,53 +867,47 @@ Tensor * mul(Tensor *t1, Tensor *t2){
             return NULL;
         }
     }
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+
+    int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
     switch(t1->dtype){
         case FLOAT32:
             for(int i=0; i<t1->size; i++){
-                t->data.float32[i] = t1->data.float32[i] * t2->data.float32[i];
-            }
-            if(!t1->requires_grad || !t2->requires_grad){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
+                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
+                t->data.float32[idx] = t1->data.float32[idx1] * t2->data.float32[idx2];
             }
             break;
         case FLOAT64:
             for(int i=0; i<t1->size; i++){
-                t->data.float64[i] = t1->data.float64[i] * t2->data.float64[i];
-            }
-            if(!t1->requires_grad || !t2->requires_grad){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
+                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
+                t->data.float64[idx] = t1->data.float64[idx1] * t2->data.float64[idx2];
             }
             break;
         case INT32:
             for(int i=0; i<t1->size; i++){
-                t->data.int32[i] = t1->data.int32[i] * t2->data.int32[i];
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
+                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
+                t->data.int32[idx] = t1->data.int32[idx1] * t2->data.int32[idx2];
             }
             break;
         case INT64:
             for(int i=0; i<t1->size; i++){
-                t->data.int64[i] = t1->data.int64[i] * t2->data.int64[i];
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
+                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
+                t->data.int64[idx] = t1->data.int64[idx1] * t2->data.int64[idx2];
             }
         default:
             free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
-    t->requires_grad = (t1->requires_grad == true || t2->requires_grad == true) ? true : false;
+
     t->op = MUL;
     t->prevs[0] = t1;
     t->prevs[1] = t2;
@@ -844,12 +921,18 @@ void mul_backward(Tensor * out){
         switch (out->dtype){
             case FLOAT32:
                 for(int i=0; i<out->size; i++){
-                    out->prevs[0]->grad.float32[i] += out->prevs[1]->data.float32[i] * out->grad.float32[i];
+                    int idx1 = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    int idx2 = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
+                    int idx = shape_index(i, out->dims[0], out->dims[1]);
+                    out->prevs[0]->grad.float32[idx1] += out->prevs[1]->data.float32[idx2] * out->grad.float32[idx];
                 }
                 break;
             case FLOAT64:
                 for(int i=0; i<out->size; i++){
-                    out->prevs[0]->grad.float64[i] += out->prevs[1]->data.float64[i] * out->grad.float64[i];
+                    int idx1 = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    int idx2 = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
+                    int idx = shape_index(i, out->dims[0], out->dims[1]);
+                    out->prevs[0]->grad.float64[idx1] += out->prevs[1]->data.float64[idx2] * out->grad.float64[idx];
                 }
                 break;
             default:
@@ -862,12 +945,18 @@ void mul_backward(Tensor * out){
         switch (out->dtype){
             case FLOAT32:
                 for(int i=0; i<out->size; i++){
-                    out->prevs[1]->grad.float32[i] += out->prevs[0]->data.float32[i] * out->grad.float32[i];
+                    int idx1 = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    int idx2 = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
+                    int idx = shape_index(i, out->dims[0], out->dims[1]);
+                    out->prevs[1]->grad.float32[idx2] += out->prevs[0]->data.float32[idx1] * out->grad.float32[idx];
                 }
                 break;
             case FLOAT64:
                 for(int i=0; i<out->size; i++){
-                    out->prevs[1]->grad.float64[i] += out->prevs[0]->data.float64[i] * out->grad.float64[i];
+                    int idx1 = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    int idx2 = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
+                    int idx = shape_index(i, out->dims[0], out->dims[1]);
+                    out->prevs[1]->grad.float64[idx2] += out->prevs[0]->data.float64[idx1] * out->grad.float64[idx];
                 }
                 break;
             default:
@@ -888,70 +977,44 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
     if(t1->dims[1]!= t2->dims[0] || t1->dtype != t2->dtype){
         return NULL;
     }
-    Tensor * t = tensor(NULL, t1->dtype, dims, t1->ndim, false);
+    int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
+    Tensor * t = tensor(NULL, t1->dtype, dims, t1->ndim, require_grad);
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
-            for(int i=0; i<m; i++){
-                for(int j=0; j<n; j++){
-                    float sum=0.0;
-                    for(int k=0; k<l; k++){
-                        sum += t1->data.float32[i*l + k] * t2->data.float32[k*n + j];
+            for(int i = 0; i < m; i++){
+                for (int j = 0; j < n; j++){
+                    for (int k = 0; k < l; k++)
+                    {
+                        t->data.float32[i*n + j] += t1->data.float32[i*l + k] * t2->data.float32[k*n + j];
                     }
-                    t->data.float32[i*n + j] = sum;
                 }
-            }
-            if(!t1->requires_grad || !t2->requires_grad){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float32 = NULL;
             }
             break;
         case FLOAT64:
             for(int i=0; i<m; i++){
                 for(int j=0; j<n; j++){
-                    double sum=0.0;
                     for(int k=0; k<l; k++){
-                        sum += t1->data.float64[i*l + k] * t2->data.float64[k*n + j];
+                        t->data.float64[i*n + j] += t1->data.float64[i*l + k] * t2->data.float64[k*n + j];
                     }
-                    t->data.float64[i*n + j] = sum;
                 }
-            }
-            if(!t1->requires_grad || !t2->requires_grad){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
             }
             break;
         case INT32:
             for(int i=0; i<m; i++){
                 for(int j=0; j<n; j++){
-                    int32_t sum=0;
                     for(int k=0; k<l; k++){
-                        sum += t1->data.int32[i*l + k] * t2->data.int32[k*n + j];
+                        t->data.int32[i*n + j] += t1->data.int32[i*l + k] * t2->data.int32[k*n + j];
                     }
-                    t->data.int32[i*n + j] = sum;
                 }
             }
             break;
         case INT64:
             for(int i=0; i<m; i++){
                 for(int j=0; j<n; j++){
-                    int64_t sum=0;
                     for(int k=0; k<l; k++){
-                        sum += t1->data.int64[i*l + k] * t2->data.int64[k*n + j];
+                        t->data.int64[i*n + j] += t1->data.int64[i*l + k] * t2->data.int64[k*n + j];
                     }
-                    t->data.int64[i*n + j] = sum;
                 }
             }
             break;
@@ -960,7 +1023,7 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
-    t->requires_grad = (t1->requires_grad == true || t2->requires_grad == true) ? true : false;
+
     t->op = MATMUL;
     t->prevs[0] = t1;
     t->prevs[1] = t2;
@@ -977,25 +1040,19 @@ void matmul_backward(Tensor * out){
         case FLOAT32:
             if(out->prevs[0]->requires_grad == true){
                 for(int i=0; i<m; i++){
-                    for(int j=0; j<n; j++){
-                        float grad_out = out->grad.float32[i*n + j];
-                        float sum=0.0;
-                        for(int k=0; k<l; k++){
-                            sum += out->prevs[1]->data.float32[j*l + k] * grad_out;
+                    for(int k=0; k<l; k++){
+                        for(int j=0; j<n; j++){
+                            out->prevs[0]->grad.float32[i*l + k] += out->grad.float32[i*n + j] * out->prevs[1]->data.float32[j*l + k];
                         }
-                        out->prevs[0]->grad.float32[i*n + j] = sum;
                     }
                 }
             }
             if(out->prevs[1]->requires_grad == true){
-                for(int i=0; i<m; i++){
+                for(int k=0; k<l; k++){
                     for(int j=0; j<n; j++){
-                        float grad_out = out->grad.float32[i*n + j];
-                        float sum=0.0;
-                        for(int k=0; k<l; k++){
-                            sum += out->prevs[0]->data.float32[i*l + k] * grad_out;
+                        for(int i=0; i<m; i++){
+                            out->prevs[1]->grad.float32[k*n + j] += out->prevs[0]->data.float32[k*m + i] * out->grad.float32[i*n + j];
                         }
-                        out->prevs[1]->grad.float32[i*n + j] = sum;
                     }
                 }
             }
@@ -1003,25 +1060,19 @@ void matmul_backward(Tensor * out){
         case FLOAT64:
             if(out->prevs[0]->requires_grad == true){
                 for(int i=0; i<m; i++){
-                    for(int j=0; j<n; j++){
-                        double grad_out = out->grad.float64[i*n + j];
-                        double sum=0.0;
-                        for(int k=0; k<l; k++){
-                            sum += out->prevs[1]->data.float64[j*l + k] * grad_out;
+                    for(int k=0; k<l; k++){
+                        for(int j=0; j<n; j++){
+                            out->prevs[0]->grad.float64[i*l + k] += out->grad.float64[i*n + j] * out->prevs[1]->data.float64[j*l + k];
                         }
-                        out->prevs[0]->grad.float64[i*n + j] = sum;
                     }
                 }
             }
             if(out->prevs[1]->requires_grad == true){
-                for(int i=0; i<m; i++){
+                for(int k=0; k<l; k++){
                     for(int j=0; j<n; j++){
-                        double grad_out = out->grad.float64[i*n + j];
-                        double sum=0.0;
-                        for(int k=0; k<l; k++){
-                            sum += out->prevs[0]->data.float64[i*l + k] * grad_out;
+                        for(int i=0; i<m; i++){
+                            out->prevs[1]->grad.float64[k*n + j] += out->prevs[0]->data.float64[k*m + i] * out->grad.float64[i*n + j];
                         }
-                        out->prevs[1]->grad.float64[i*n + j] = sum;
                     }
                 }
             }
@@ -1041,61 +1092,33 @@ Tensor * Div( Tensor * t1, Tensor *t2){
         if(t1->dims[i]!= t2->dims[i]) return NULL;
     }
 
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+    int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
     if(!t) return NULL;
 
-    switch (t1->dtype)
-    {
+    switch (t1->dtype){
     case FLOAT32:
-        for (int i = 0; i < t1->size; i++)
-        {
-            t->data.float32[i] = t1->data.float32[i] / t2->data.float32[i];
-        }
-        if(!t1->requires_grad || !t2->requires_grad){
-            t->grad.float32 = (float*)calloc(t1->size, sizeof(float));
-            if(!t1->grad.float32){
-                fprintf(stderr, "Memory allocation for grad failed\n");
-                t_free(t);
-                return NULL;
-            }
-        }else
-        {
-            t->grad.float32 = NULL;
+        for (int i = 0; i < t1->size; i++){
+            int idx = shape_index(i, t->dims[0], t->dims[1]);
+            t->data.float32[idx] = t1->data.float32[idx] / t2->data.float32[idx];
         }
         break;
     case FLOAT64:
         for (int i = 0; i < t1->size; i++){
-            t->data.float64[i] = t1->data.float64[i] / t2->data.float64[i];
-        }
-        if(!t1->requires_grad || !t2->requires_grad){
-            t->grad.float64 = (double*)calloc(t1->size, sizeof(double));
-            if(!t1->grad.float64){
-                fprintf(stderr, "Memory allocation for grad failed\n");
-                t_free(t);
-                return NULL;
-            }
-        }else{
-            t->grad.float64 = NULL;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+            t->data.float64[idx] = t1->data.float64[idx] / t2->data.float64[idx];
         }
         break;
     case INT32:
         for(int i=0; i<t1->size; i++){
-            t->data.float32[i] = t1->data.int32[i] / t2->data.int32[i];
-        }
-        if(!t1->requires_grad || !t2->requires_grad){
-            fprintf(stderr, "Only Tensors of floating point and complex dtype can require gradients\n");
-            t_free(t);
-            return NULL;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+            t->data.float32[idx] = t1->data.int32[idx] / t2->data.int32[idx];
         }
         break;
     case INT64:
         for(int i=0; i<t1->size; i++){
-            t->data.float64[i] = t1->data.int64[i] / t2->data.int64[i];
-        }
-        if(!t1->requires_grad || !t2->requires_grad){
-            fprintf(stderr, "Only Tensors of floating point and complex dtype can require gradients\n");
-            t_free(t);
-            return NULL;
+                int idx = shape_index(i, t->dims[0], t->dims[1]);
+            t->data.float64[idx] = t1->data.int64[idx] / t2->data.int64[idx];
         }
         break;
     default:
@@ -1108,7 +1131,6 @@ Tensor * Div( Tensor * t1, Tensor *t2){
     t->num_prevs=2;
     t->prevs[0]= t1;
     t->prevs[1]= t2;
-    t->requires_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
     
     return t;
 }
@@ -1116,34 +1138,33 @@ Tensor * Div( Tensor * t1, Tensor *t2){
 void Div_backward(Tensor *out){
     if(!out) return;
 
-    switch (out->dtype)
-    {
+    switch (out->dtype){
     case FLOAT32:
         if(out->prevs[0]->requires_grad==true){
-            for (int i = 0; i < out->size; i++)
-            {
-                out->prevs[0]->grad.float32[i] += out->grad.float32[i]/out->prevs[1]->data.float32[i]; 
+            for (int i = 0; i < out->size; i++){
+                int idx = shape_index(i, out->dims[0], out->dims[1]);
+                out->prevs[0]->grad.float32[idx] += out->grad.float32[idx]/out->prevs[1]->data.float32[idx]; 
             }
         }
         if(out->prevs[1]->requires_grad==true){
-            for (int i = 0; i < out->size; i++)
-            {
-                out->prevs[1]->grad.float32[i] += out->grad.float32[i] * out->prevs[0]->data.float32[i] / pow(out->prevs[1]->data.float32[i] , 2);
+            for (int i = 0; i < out->size; i++){
+                int idx = shape_index(i, out->dims[0], out->dims[1]);
+                out->prevs[1]->grad.float32[idx] += (-out->grad.float32[idx] * out->prevs[0]->data.float32[idx]) / pow(out->prevs[1]->data.float32[idx] , 2);
             }
         }
         break;
 
     case FLOAT64:
         if(out->prevs[0]->requires_grad==true){
-            for (int i = 0; i < out->size; i++)
-            {
-                out->prevs[0]->grad.float64[i] += out->grad.float64[i]/out->prevs[1]->data.float64[i]; 
+            for (int i = 0; i < out->size; i++){
+                int idx = shape_index(i, out->dims[0], out->dims[1]);
+                out->prevs[0]->grad.float64[idx] += out->grad.float64[idx]/out->prevs[1]->data.float64[idx]; 
             }
         }
         if(out->prevs[1]->requires_grad==true){
-            for (int i = 0; i < out->size; i++)
-            {
-                out->prevs[1]->grad.float64[i] += (out->grad.float64[i] * out->prevs[0]->data.float64[i]) / pow(out->prevs[1]->data.float64[i] , 2);
+            for (int i = 0; i < out->size; i++){
+                int idx = shape_index(i, out->dims[0], out->dims[1]);
+                out->prevs[1]->grad.float64[idx] += (-out->grad.float64[idx] * out->prevs[0]->data.float64[idx]) / pow(out->prevs[1]->data.float64[idx] , 2);
             }  
         }
         break;    
@@ -1157,70 +1178,44 @@ void Div_backward(Tensor *out){
 
 Tensor* Pow(Tensor *t1, double exponent){
     if(!t1)return NULL;
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+    int require_grad = (!t1->requires_grad)? true: false;
+
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
             for(int i=0; i<t1->size; i++){
-                t->data.float32[i] = powf(t1->data.float32[i], (float )exponent);
-            }
-            if(!t1->requires_grad ){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float32 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float32[idx] = powf(t1->data.float32[idx], (float )exponent);
             }
             break;
 
         case FLOAT64:
-            for (int i = 0; i < t1->size; i++)
-            {
-                t->data.float64[i] = pow(t1->data.float64[i], exponent);
-            }
-            if (!t1->requires_grad)
-            {
-                t->grad.float64 = (double*)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            }else{
-                t->grad.float64 = NULL;
+            for (int i = 0; i < t1->size; i++){
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float64[idx] = pow(t1->data.float64[idx], exponent);
             }
             break;
 
         case INT32:
-            for (int i = 0; i < t1->size; i++)
-            {
-                t->data.int32[i] =(int32_t)pow((double)t1->data.int32[i], exponent);
+            for (int i = 0; i < t1->size; i++){
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.int32[idx] =(int32_t)pow((double)t1->data.int32[idx], exponent);
             }
-            if (!t1->requires_grad)
-            {
-                fprintf(stderr, "Gradient calculation not supported for integer types.\n");
-                t_free(t);
-                return NULL;
-            }else{
-                t->grad.float32 = NULL;
-            }
+            // if (!t1->requires_grad)
+            // {
+            //     fprintf(stderr, "Gradient calculation not supported for integer types.\n");
+            //     t_free(t);
+            //     return NULL;
+            // }else{
+            //     t->grad.float32 = NULL;
+            // }
             break;
         
         case INT64:
-            for (int i = 0; i < t1->size; i++)
-            {
-                t->data.int64[i] = (int64_t)pow((double)t1->data.int64[i], exponent);
-            }
-            if (!t1->requires_grad)
-            {
-                fprintf(stderr, "Gradient calculation not supported for integer types.\n");
-                t_free(t);
-                return NULL;
-            }else{
-                t->grad.float64 = NULL;
+            for (int i = 0; i < t1->size; i++){
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.int64[idx] = (int64_t)pow((double)t1->data.int64[idx], exponent);
             }
             break;
 
@@ -1230,7 +1225,6 @@ Tensor* Pow(Tensor *t1, double exponent){
             return NULL;
             break;           
     }
-    t->requires_grad = (t1->requires_grad == true) ? true : false;
     t->op=POW;
     t->num_prevs=1;
     t->prevs[0]= t1;
@@ -1244,18 +1238,18 @@ void Pow_backward(Tensor * out){
     switch (out->dtype){
         case FLOAT32:
             if(out->prevs[0]->requires_grad==true){
-                for (int i = 0; i < out->size; i++)
-                {
-                    out->prevs[0]->grad.float32[i] += out->grad.float32[i] * (float)out->extra * powf(out->prevs[0]->data.float32[i], ((float)out->extra-1));
+                for (int i = 0; i < out->prevs[0]->size; i++){
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    out->prevs[0]->grad.float32[idx] += out->grad.float32[idx] * (float)out->extra * powf(out->prevs[0]->data.float32[idx], ((float)out->extra-1));
                 }
             }
             break;
 
         case FLOAT64:
             if(out->prevs[0]->requires_grad==true){
-                for (int i = 0; i < out->size; i++)
-                {
-                    out->prevs[0]->grad.float64[i] += out->grad.float64[i] * out->extra * pow(out->prevs[0]->data.float64[i], (out->extra-1));
+                for (int i = 0; i < out->prevs[0]->size; i++){
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    out->prevs[0]->grad.float64[idx] += out->grad.float64[idx] * out->extra * pow(out->prevs[0]->data.float64[idx], (out->extra-1));
                 }
             }
             break;
@@ -1269,77 +1263,34 @@ void Pow_backward(Tensor * out){
 
 Tensor * Exp(Tensor *t1){
     if(!t1) return NULL;
-    Tensor *t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+    int require_grad = (!t1->requires_grad)? true: false;
+    Tensor *t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
     if(!t) return NULL;
 
     switch (t1->dtype)
     {
         case FLOAT32:
-            for (int i = 0; i < t1->size; i++)
-            {
-                t->data.float32[i] = expf(t->data.float32[i]);
-            }
-            if (!t1->requires_grad)
-            {
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if (!t1->grad.float32)
-                {
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-                
-            }else{
-                t->grad.float32 = NULL;
+            for (int i = 0; i < t1->size; i++){
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float32[idx] = expf(t->data.float32[idx]);
             }
             break;
         case FLOAT64:
-            for (int i = 0; i < t1->size; i++)
-            {
-                t->data.float64[i] = exp(t->data.float64[i]);
-            }
-            if (!t1->requires_grad)
-            {
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if (!t1->grad.float64)
-                {
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-                
-            }else{
-                t->grad.float64 = NULL;
+            for (int i = 0; i < t1->size; i++){
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float64[idx] = exp(t->data.float64[idx]);
             }
             break;
         case INT32:
-            for (int i = 0; i < t1->size; i++)
-            {
-                t->data.float32[i] = exp((float)t->data.int32[i]);
-            }
-            if (!t1->requires_grad)
-            {
-                fprintf(stderr, "Gradient calculation not supported for integer types.\n");
-                t_free(t);
-                return NULL;
-                
-            }else{
-                t->grad.float32 = NULL;
+            for (int i = 0; i < t1->size; i++){
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float32[idx] = exp((float)t->data.int32[idx]);
             }
             break;
         case INT64:
-            for (int i = 0; i < t1->size; i++)
-            {
-                t->data.float64[i] = exp((double)t->data.int64[i]);
-            }
-            if (!t1->requires_grad)
-            {
-                fprintf(stderr, "Gradient calculation not supported for integer types.\n");
-                t_free(t);
-                return NULL;
-                
-            }else{
-                t->grad.float64 = NULL;
+            for (int i = 0; i < t1->size; i++){
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float64[idx] = exp((double)t->data.int64[idx]);
             }
             break;
         default:
@@ -1348,7 +1299,6 @@ Tensor * Exp(Tensor *t1){
             return NULL;
             break;           
     }
-    t->requires_grad = (t1->requires_grad == true) ? true : false;
     t->op=EXP;
     t->num_prevs=1;
     t->prevs[0]= t1;
@@ -1361,18 +1311,18 @@ void Exp_backward(Tensor * out){
     switch (out->dtype){
         case FLOAT32:
             if(out->prevs[0]->requires_grad==true){
-                for (int i = 0; i < out->size; i++)
-                {
-                    out->prevs[0]->grad.float32[i] += out->grad.float32[i] * expf(out->prevs[0]->data.float32[i]);
+                for (int i = 0; i < out->prevs[0]->size; i++){
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    out->prevs[0]->grad.float32[idx] += out->grad.float32[idx] * expf(out->prevs[0]->data.float32[idx]);
                 }
             }
             break;
 
         case FLOAT64:
             if(out->prevs[0]->requires_grad==true){
-                for (int i = 0; i < out->size; i++)
-                {
-                    out->prevs[0]->grad.float64[i] += out->grad.float64[i] * exp(out->prevs[0]->data.float64[i]);
+                for (int i = 0; i < out->prevs[0]->size; i++){
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    out->prevs[0]->grad.float64[idx] += out->grad.float64[idx] * exp(out->prevs[0]->data.float64[idx]);
                 }
             }
             break;
@@ -1386,47 +1336,32 @@ void Exp_backward(Tensor * out){
 
 Tensor * relu(Tensor *t1){
     if(!t1) return NULL;
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+    int require_grad = (!t1->requires_grad)? true: false;
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
             for(int i=0; i<t1->size; i++){
-                t->data.float32[i] = (t1->data.float32[i]<0) ? 0 : (t1->data.float32[i]);
-            }
-            if(!t1->requires_grad ){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float32 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float32[idx] = (t1->data.float32[idx]<0) ? 0 : (t1->data.float32[idx]);
             }
             break;
         case FLOAT64:
             for(int i=0; i<t1->size; i++){
-                t->data.float64[i] = (t1->data.float64[i]<0) ? 0 : (t1->data.float64[i]);
-            }
-            if(!t1->requires_grad ){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float64[idx] = (t1->data.float64[idx]<0) ? 0 : (t1->data.float64[idx]);
             }
             break;
         case INT32:
             for(int i=0; i<t1->size; i++){
-                t->data.int32[i] = (t1->data.int32[i]<0) ? 0 : (t1->data.int32[i]);
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.int32[idx] = (t1->data.int32[idx]<0) ? 0 : (t1->data.int32[idx]);
             }
             break;
         case INT64:
             for(int i=0; i<t1->size; i++){
-                t->data.int64[i] = (t1->data.int64[i]<0) ? 0 : (t1->data.int64[i]);
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.int64[idx] = (t1->data.int64[idx]<0) ? 0 : (t1->data.int64[idx]);
             }
             break;
         default:
@@ -1434,7 +1369,6 @@ Tensor * relu(Tensor *t1){
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
-    t->requires_grad = (t1->requires_grad == true) ? true : false;
     t->op=RELU;
     t->prevs[0]= t1;
     t->num_prevs = 1;
@@ -1446,13 +1380,15 @@ void relu_backward(Tensor * out){
     if(out->prevs[0]->requires_grad == true){
         switch(out->dtype){
         case FLOAT32:
-            for(int i=0; i<out->size; i++){
-                out->prevs[0]->grad.float32[i] += (out->data.float32[i] > 0) ? 0 : (out->grad.float32[i]);
+            for(int i=0; i<out->prevs[0]->size; i++){
+                int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                out->prevs[0]->grad.float32[idx] += (out->data.float32[idx] < 0) ? 0 : (out->grad.float32[idx]);
             }
             break;
         case FLOAT64:
-            for(int i=0; i<out->size; i++){
-                out->prevs[0]->grad.float64[i] += (out->data.float64[i] > 0) ? 0 : (out->grad.float64[i]);
+            for(int i=0; i<out->prevs[0]->size; i++){
+                int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                out->prevs[0]->grad.float64[idx] += (out->data.float64[idx] < 0) ? 0 : (out->grad.float64[idx]);
             }
             break;
         default:
@@ -1465,37 +1401,20 @@ void relu_backward(Tensor * out){
 
 Tensor * leaky_relu(double negative_slope, Tensor *t1){
     if(!t1) return NULL;
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+    int require_grad = (!t1->requires_grad)? true: false;
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
             for(int i=0; i<t1->size; i++){
-                t->data.float32[i] = (t1->data.float32[i]<0) ? ((float)negative_slope * t1->data.float32[i]) : (t1->data.float32[i]);
-            }
-            if(!t1->requires_grad){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float32 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float32[idx] = (t1->data.float32[idx]<0) ? ((float)negative_slope * t1->data.float32[idx]) : (t1->data.float32[idx]);
             }
             break;
         case FLOAT64:
             for(int i=0; i<t1->size; i++){
-                t->data.float64[i] = (t1->data.float64[i]<0) ? (negative_slope * t1->data.float64[i]) : (t1->data.float64[i]);
-            }
-            if(!t1->requires_grad){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float64[idx] = (t1->data.float64[idx]<0) ? (negative_slope * t1->data.float64[idx]) : (t1->data.float64[idx]);
             }
             break;
         case INT32:
@@ -1513,7 +1432,6 @@ Tensor * leaky_relu(double negative_slope, Tensor *t1){
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
-    t->requires_grad =(t1->requires_grad == true) ? true : false;
     t->op=LEAKY_RELU;
     t->prevs[0] = t1;
     t->extra = negative_slope;
@@ -1527,14 +1445,16 @@ void leaky_relu_backward(Tensor * out){
     if(out->prevs[0]->requires_grad == true){
         switch(out->dtype){
         case FLOAT32:
-            for(int i=0; i<out->size; i++){
-                out->prevs[0]->grad.float32[i] += (out->data.float32[i]>0) ? ((float)out->extra * out->grad.float32[i]) : (out->grad.float32[i]);
+            for(int i=0; i<out->prevs[0]->size; i++){
+                int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                out->prevs[0]->grad.float32[idx] += (out->data.float32[idx]<0) ? ((float)out->extra * out->grad.float32[idx]) : (out->grad.float32[idx]);
             }
             break;
 
         case FLOAT64:
-            for(int i=0; i<out->size; i++){
-                out->prevs[0]->grad.float64[i] += (out->data.float64[i]>0) ? (out->extra * out->grad.float64[i]) : (out->grad.float64[i]);
+            for(int i=0; i<out->prevs[0]->size; i++){
+                int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                out->prevs[0]->grad.float64[idx] += (out->data.float64[idx]<0) ? (out->extra * out->grad.float64[idx]) : (out->grad.float64[idx]);
             }
             break;
 
@@ -1549,69 +1469,33 @@ void leaky_relu_backward(Tensor * out){
 
 Tensor * Tanh(Tensor * t1){
     if(!t1) return NULL;
-
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+    int require_grad = (!t1->requires_grad)? true : false;
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
     if(!t) return NULL;
 
     switch(t1->dtype){
         case FLOAT32:
             for(int i=0; i<t1->size; i++){
-                t->data.float32[i] = (exp(2*t1->data.float32[i]) - 1) / (exp(2*t1->data.float32[i]) + 1);
-            }
-            if(!t1->requires_grad){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float32 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float32[idx] = (exp(2*t1->data.float32[idx]) - 1) / (exp(2*t1->data.float32[idx]) + 1);
             }
             break;
         case FLOAT64:
             for(int i=0; i<t1->size; i++){
-                t->data.float64[i] = (exp(2*t1->data.float64[i]) - 1) / (exp(2*t1->data.float64[i]) + 1);
-            }
-            if(!t1->requires_grad){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float64[idx] = (exp(2*t1->data.float64[idx]) - 1) / (exp(2*t1->data.float64[idx]) + 1);
             }
             break;
         case INT32:
             for(int i=0; i<t1->size; i++){
-                t->data.float32[i] = (exp(2*t1->data.int32[i]) - 1) / (1 + exp(2*t1->data.int32[i]) + 1);
-            }
-            if(!t1->requires_grad){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float32 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float32[idx] = (exp(2*t1->data.int32[idx]) - 1) / (exp(2*t1->data.int32[idx]) + 1);
             }
             break;
         case INT64:
             for(int i=0; i<t1->size; i++){
-                t->data.float64[i] = (exp(2*t1->data.int64[i]) - 1) / (exp(2*t1->data.int64[i]) + 1);
-            }
-            if(!t1->requires_grad){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float64[idx] = (exp(2*t1->data.int64[idx]) - 1) / (exp(2*t1->data.int64[idx]) + 1);
             }
             break;
 
@@ -1621,7 +1505,6 @@ Tensor * Tanh(Tensor * t1){
             return NULL;
     }
 
-    t->requires_grad= (t1->requires_grad == true) ? true : false;
     t->prevs[0]=t1;
     t->op=TANH;
     t->num_prevs = 1;
@@ -1636,22 +1519,14 @@ void Tanh_backward(Tensor * out){
         switch(out->dtype){
         case FLOAT32:
             for(int i=0; i<out->prevs[0]->size; i++){
-                out->prevs[0]->grad.float32[i] += (1 - pow(out->data.float32[i], 2)) * out->grad.float32[i];
+                int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                out->prevs[0]->grad.float32[idx] += (1 - pow(out->data.float32[idx], 2)) * out->grad.float32[idx];
             }
             break;
         case FLOAT64:
             for(int i=0; i<out->prevs[0]->size; i++){
-                out->prevs[0]->grad.float64[i] += (1 - pow(out->data.float64[i], 2)) * out->grad.float64[i];
-            }
-            break;
-        case INT32:
-            for(int i=0; i<out->prevs[0]->size; i++){
-                out->prevs[0]->grad.float32[i] += (1 - pow(out->data.int32[i], 2)) * out->grad.float32[i];
-            }
-            break;
-        case INT64:
-            for(int i=0; i<out->prevs[0]->size; i++){
-                out->prevs[0]->grad.float64[i] += (1 - pow(out->data.int64[i], 2)) * out->grad.float64[i];
+                int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                out->prevs[0]->grad.float64[idx] += (1 - pow(out->data.float64[idx], 2)) * out->grad.float64[idx];
             }
             break;
 
@@ -1665,49 +1540,33 @@ void Tanh_backward(Tensor * out){
 
 Tensor * Sigmoid(Tensor * t1){
     if(!t1) return NULL;
-
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+    int require_grad = (!t1->requires_grad)? true:false;
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
     if(!t) return NULL;
 
     switch(t1->dtype){
         case FLOAT32:
             for(int i=0; i<t1->size; i++){
-                t->data.float32[i] = 1 / (1 + exp(-t1->data.float32[i]));
-            }
-            if(!t1->requires_grad){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float32 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float32[idx] = 1 / (1 + exp(-t1->data.float32[idx]));
             }
             break;
         case FLOAT64:
             for(int i=0; i<t1->size; i++){
-                t->data.float64[i] = 1 / (1 + exp(-t1->data.float64[i]));
-            }
-            if(!t1->requires_grad){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float64[idx] = 1 / (1 + exp(-t1->data.float64[idx]));
             }
             break;
         case INT32:
             for(int i=0; i<t1->size; i++){
-                t->data.float32[i] = 1 / (1 + exp(-t1->data.int32[i]));
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float32[idx] = 1 / (1 + exp(-t1->data.int32[idx]));
             }
             break;
         case INT64:
             for(int i=0; i<t1->size; i++){
-                t->data.float64[i] = 1 / (1 + exp(-t1->data.int64[i]));
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float64[idx] = 1 / (1 + exp(-t1->data.int64[idx]));
             }
             break;
         default:
@@ -1716,7 +1575,6 @@ Tensor * Sigmoid(Tensor * t1){
             return NULL;
     }
 
-    t->requires_grad = (t1->requires_grad == true) ? true : false;
     t->op = SIGMOID;
     t->prevs[0] = t1;
     t->num_prevs = 1;
@@ -1730,15 +1588,15 @@ void Sigmoid_backward(Tensor * out){
     if(out->prevs[0]->requires_grad == true){
         switch(out->prevs[0]->dtype){
             case FLOAT32:
-            case INT32:
                 for(int i=0; i<out->prevs[0]->size; i++){
-                    out->prevs[0]->grad.float32[i] += out->data.float32[i] * (1 - out->data.float32[i]) * out->grad.float32[i];
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    out->prevs[0]->grad.float32[idx] += out->data.float32[idx] * (1 - out->data.float32[idx]) * out->grad.float32[idx];
                 }
                 break;
             case FLOAT64:
-            case INT64:
                 for(int i=0; i<out->prevs[0]->size; i++){
-                    out->prevs[0]->grad.float64[i] += out->data.float64[i] * (1 - out->data.float64[i]) * out->grad.float64[i];
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    out->prevs[0]->grad.float64[idx] += out->data.float64[idx] * (1 - out->data.float64[idx]) * out->grad.float64[idx];
                 }
                 break;
             default:
@@ -1751,8 +1609,8 @@ void Sigmoid_backward(Tensor * out){
 
 Tensor * softmax(Tensor *t1){
     if(!t1) return NULL;
-
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, false);
+    int require_grad = (!t1->requires_grad)? true : false;
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
     if(!t) return NULL;
 
     float s_float = 0.0f;
@@ -1786,16 +1644,6 @@ Tensor * softmax(Tensor *t1){
                 t->data.float32[i] = ex_float[i] / s_float;
             }
             free(ex_float);
-            if(!t1->requires_grad){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float32 = NULL;
-            }
             break;
 
         case FLOAT64:
@@ -1821,16 +1669,6 @@ Tensor * softmax(Tensor *t1){
                 t->data.float64[i] = ex_double[i] / s_double;
             }
             free(ex_double);
-            if(!t1->requires_grad){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
-            }
             break;
 
         case INT32:
@@ -1854,7 +1692,6 @@ Tensor * softmax(Tensor *t1){
     t->op=SOFTMAX;
     t->prevs[0] = t1;
     t->num_prevs = 1;
-    t->requires_grad = (t1->requires_grad == true) ? true : false;
 
     return t;
 }
@@ -1870,7 +1707,7 @@ void softmax_backward(Tensor *out){
                     {
                         if (i != j)
                         {
-                            out->prevs[0]->grad.float32[i*out->prevs[0]->dims[1] + j] += (out->prevs[0]->data.float32[i] * out->prevs[0]->data.float32[j]) * out->grad.float32[i*out->prevs[0]->dims[1] + j];
+                            out->prevs[0]->grad.float32[i*out->prevs[0]->dims[1] + j] += -(out->prevs[0]->data.float32[i] * out->prevs[0]->data.float32[j]) * out->grad.float32[i*out->prevs[0]->dims[1] + j];
                         }else{
                             out->prevs[0]->grad.float32[i*out->prevs[0]->dims[1] + j] += out->prevs[0]->data.float32[i] * (1 - out->prevs[0]->data.float32[i]) * out->grad.float32[i*out->prevs[0]->dims[1] + j];
                         } 
@@ -1901,48 +1738,33 @@ void softmax_backward(Tensor *out){
 
 Tensor * sum(Tensor * t1){
     if(!t1) return NULL;
-    Tensor *t=tensor(NULL, t1->dtype, (int[]){1}, 1, false);
+    int require_grad = (!t1->requires_grad)? true : false;
+    Tensor *t=tensor(NULL, t1->dtype, (int[]){1}, 1, require_grad);
     if (!t) return NULL;
 
     switch(t1->dtype){
         case FLOAT32:
             for(int i = 0; i<t1->size; i++){
-                t->data.float32[0] += t1->data.float32[i];
-            }
-            if(!t1->requires_grad){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float32 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float32[0] += t1->data.float32[idx];
             }
             break;
         case FLOAT64:
             for(int i = 0; i<t1->size; i++){
-                t->data.float64[0] += t1->data.float64[i];
-            }
-            if(!t1->requires_grad){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float64[0] += t1->data.float64[idx];
             }
             break;
         case INT32:
             for(int i = 0; i<t1->size; i++){
-                t->data.int32[0] += t1->data.int32[i];
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.int32[0] += t1->data.int32[idx];
             }
             break;
         case INT64:
             for(int i = 0; i<t1->size; i++){
-                t->data.int64[0] += t1->data.int64[i];
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.int64[0] += t1->data.int64[idx];
             }
         default:
             free(t);
@@ -1952,7 +1774,6 @@ Tensor * sum(Tensor * t1){
 
     t->op=SUM;
     t->prevs[0] = t1;
-    t->requires_grad = (t1->requires_grad == true) ? true : false;
 
     return t;
 }
@@ -1965,12 +1786,14 @@ void sum_backward(Tensor * out){
         {
         case FLOAT32:
             for(int i = 0; i<out->prevs[0]->size; i++){
-                out->prevs[0]->grad.float32[i] += out->grad.float32[0] * 1.0f;
+                int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                out->prevs[0]->grad.float32[idx] += out->grad.float32[0] * 1.0f;
             }
             break;
         case FLOAT64:
             for(int i = 0; i<out->prevs[0]->size; i++){
-                    out->prevs[0]->grad.float64[i] += out->grad.float64[0] * 1.0;
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    out->prevs[0]->grad.float64[idx] += out->grad.float64[0] * 1.0;
                 }
             break;
         default:
@@ -1984,42 +1807,24 @@ void sum_backward(Tensor * out){
 
 Tensor * mean(Tensor * t1){
     if(!t1) return NULL;
-
-    Tensor *t = tensor(NULL, t1->dtype, (int[]){1}, 1, false);
+    int require_grad = (!t1->requires_grad)? true : false;
+    Tensor *t = tensor(NULL, t1->dtype, (int[]){1}, 1, require_grad);
     if(!t) return NULL;
 
     switch(t1->dtype){
         case FLOAT32:
             for(int i = 0; i<t1->size; i++){
-                t->data.float32[0] += t1->data.float32[i];
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float32[0] += t1->data.float32[idx];
             }
             t->data.float32[0] = t->data.float32[0]/t1->size;
-            if(!t1->requires_grad){
-                t->grad.float32 = (float *)calloc(t->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float32 = NULL;
-            }
             break;
         case FLOAT64:
             for(int i = 0; i<t1->size; i++){
-                t->data.float64[0] += t1->data.float64[i];
+                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
+                t->data.float64[0] += t1->data.float64[idx];
             }
             t->data.float64[0] = t->data.float64[0]/t1->size;
-            if(!t1->requires_grad){
-                t->grad.float64 = (double *)calloc(t->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            } else {
-                t->grad.float64 = NULL;
-            }
             break;
         case INT32:
             t_free(t);
@@ -2042,7 +1847,6 @@ Tensor * mean(Tensor * t1){
     t->op=MEAN;
     t->prevs[0] = t1;
     t->num_prevs =1;
-    t->requires_grad = (t1->requires_grad == true) ? true : false;
 
     return t;
 }
@@ -2059,7 +1863,8 @@ void mean_backward(Tensor * out){
                     return;
                 }
                 for(int i=0; i < out->prevs[0]->size; i++){
-                    out->prevs[0]->grad.float32[i] += out->grad.float32[0] / out->prevs[0]->size;
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    out->prevs[0]->grad.float32[idx] += out->grad.float32[0] / out->prevs[0]->size;
                 }
                 break;
             case FLOAT64:
@@ -2069,7 +1874,8 @@ void mean_backward(Tensor * out){
                     return;
                 }
                 for(int i=0; i < out->prevs[0]->size; i++){
-                    out->prevs[0]->grad.float64[i] += out->grad.float64[0] / out->prevs[0]->size;
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    out->prevs[0]->grad.float64[idx] += out->grad.float64[0] / out->prevs[0]->size;
                 }
                 break;
             default:
@@ -2088,50 +1894,31 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
         if(yTrue->dims[i] != yPred->dims[i]) return NULL;
     }
 
-    Tensor *t=tensor(NULL, yPred->dtype, (int[]){1}, 1, false);
+    int require_grad = (!yPred->requires_grad)? true : false;
+
+    Tensor *t=tensor(NULL, yPred->dtype, (int[]){1}, 1, require_grad);
     if(!t){
         fprintf(stderr, "Memory allocation for MSE tensor failed\n");
         t_free(t);
         return NULL;
     }
     
-    switch (yPred->dtype)
-    {
+    switch (yPred->dtype){
         case FLOAT32:
-            for (int i = 0; i < yPred->size; i++)
-            {
-                t->data.float32[0] += powf((yPred->data.float32[i] - yTrue->data.float32[i]), 2.0f);
+            for (int i = 0; i < yPred->size; i++){
+                int idx = shape_index(i, yPred->dims[0], yPred->dims[1]);
+                t->data.float32[0] += powf((yPred->data.float32[idx] - yTrue->data.float32[idx]), 2.0f);
             }
             t->data.float32[0] /= (2*yPred->size);
             
-            if(!yPred->requires_grad){
-                t->grad.float32 = (float *) calloc(yPred->size, sizeof(float));
-                if(!t->grad.float32){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            }else{
-                    t->grad.float32 =NULL;
-                }
             break;
         case FLOAT64:
-            for (int i = 0; i < yPred->size; i++)
-            {
-                t->data.float64[0] += pow((yPred->data.float64[i] - yTrue->data.float64[i]), (double)2.0);
+            for (int i = 0; i < yPred->size; i++){
+                int idx = shape_index(i, yPred->dims[0], yPred->dims[1]);
+                t->data.float64[0] += pow((yPred->data.float64[idx] - yTrue->data.float64[idx]), (double)2.0);
             }
             t->data.float64[0] /= (2*yPred->size);
             
-            if(!yPred->requires_grad){
-                t->grad.float64 = (double*)calloc(yPred->size, sizeof(double));
-                if(!t->grad.float64){
-                    fprintf(stderr, "Memory allocation for grad failed\n");
-                    t_free(t);
-                    return NULL;
-                }
-            }else{
-                    t->grad.float64 =NULL;
-                }
             break;
 
         case INT32:
@@ -2155,7 +1942,6 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
     t->prevs[0] = yPred;
     t->prevs[1] = yTrue;
     t->num_prevs =2;
-    t->requires_grad = (yPred->requires_grad==true) ? true : false;
     return t;
 }
 
@@ -2165,15 +1951,15 @@ void MSELoss_backward(Tensor * out){
     if(!out->requires_grad){
         switch (out->dtype){
             case FLOAT32:
-                for (int i = 0; i < out->prevs[0]->size; i++)
-                {
-                    out->prevs[0]->grad.float32[i] += (float)(1/out->prevs[0]->size) * (out->prevs[0]->data.float32[i] - out->prevs[1]->data.float32[i]) * out->grad.float32[0];
+                for (int i = 0; i < out->prevs[0]->size; i++){
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    out->prevs[0]->grad.float32[idx] += (float)(1/out->prevs[0]->size) * (out->prevs[0]->data.float32[idx] - out->prevs[1]->data.float32[idx]) * out->grad.float32[0];
                 }
                 break;
             case FLOAT64:
-                for (int i = 0; i < out->prevs[0]->size; i++)
-                {
-                    out->prevs[0]->grad.float64[i] += (double)(1/out->prevs[0]->size) * (out->prevs[0]->data.float64[i] - out->prevs[1]->data.float64[i]) * out->grad.float64[0];
+                for (int i = 0; i < out->prevs[0]->size; i++){
+                    int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
+                    out->prevs[0]->grad.float64[idx] += (double)(1/out->prevs[0]->size) * (out->prevs[0]->data.float64[idx] - out->prevs[1]->data.float64[idx]) * out->grad.float64[0];
                 }
                 break;
             
@@ -2243,49 +2029,139 @@ void print(Tensor* t){
         printf("%d%s", t->dims[i], i<t->ndim-1 ? ", " : "");
     }
     printf("]\n");
-    printf("  data:  [");
-    for(int i=0; i<t->size && i<10; i++){
-        switch (t->dtype){
-            case FLOAT32: printf("%.4f", t->data.float32[i]); break;
-            case FLOAT64: printf("%.4lf", t->data.float64[i]); break;
-            case INT32: printf("%d", t->data.int32[i]); break;
-            case INT64: printf("%lld", t->data.int64[i]); break;
-            default: printf("Unsupported type"); break;
-        }
-        printf("%s", i < t->size-1 ? ", " : "");
-        if(i == 9 && t->size > 10){
-            printf("...");
-            break;
-        }
-    }
-    printf("]\n");
-    if(!t->requires_grad){
-        printf("  grads: [");
-        if (t->grad.float32){
-            for(int i=0; i<t->size && i<10; i++){
-                printf("%.4f", t->grad.float32[i]);
-                printf("%s", i < t->size-1? ", " : "");
-                if(i == 9 && t->size > 10){
-                    printf("...");
-                    break;
-                }
+
+    int rows = t->dims[0];
+    int cols = t->dims[1];
+
+    if(t->ndim > 1){
+        printf("  data:  [");
+        for(int i=0; i<t->size; i++){
+            int row = i/cols;
+            int col = i%cols;
+            int idx = shape_index(i, rows, cols);
+            if (col == 0 && row == 0){printf("[");}
+            if(col == 0 && row > 0){printf("\n\t  [");}
+            
+            switch (t->dtype){
+                case FLOAT32: printf("%.4f", t->data.float32[idx]); break;
+                case FLOAT64: printf("%.4lf", t->data.float64[idx]); break;
+                case INT32: printf("%d", t->data.int32[idx]); break;
+                case INT64: printf("%lld", t->data.int64[idx]); break;
+                default: printf("Unsupported type"); break;
             }
-        }else if (t->grad.float64){
-            // int size = sizeof(t->grad.float64)/sizeof(t->grad.float64[0]);
-            size_t size=sizeof(t->grad.float64);
-            for(int i=0; i<size && i<10; i++){
-                printf("%.4lf", t->grad.float64[i]);
-                printf("%s", i < size-1? ", " : "");
-                if(i == 9 && size > 10){
-                    printf("...");
-                    break;
-                }
+            if(col==cols-1){
+                    printf("]");
+                    if(row < rows-1){
+                        printf(",");
+                    }
+            }else{
+                printf(", ");
             }
         }
-    printf("]\n");
-    }else {
+        printf("]\n\n");
+        if(t->dtype==FLOAT32){
+            if (!t->requires_grad){
+                printf("  grads: [");
+                for (int i = 0; i < t->size; i++){
+                    int row = i/cols;
+                    int col = i%cols;
+                    int idx = shape_index(i, rows, cols);
+                    if (col == 0 && row == 0){printf("[");}
+                    if(col == 0 && row > 0){printf("\n\t  [");}
+
+                    if (t->grad.float32){
+                        printf("%.4e", t->grad.float32[idx]);
+
+                    }
+                    if(col==cols-1){
+                        printf("]");
+                        if(row < rows-1){
+                            printf(",");
+                        }
+                    }else{
+                        printf(", ");
+                    }
+                }
+                printf("]\n");
+            }else {
             printf("  grads:  ");
             printf("None\n");
+            }
+        } else if(t->dtype==FLOAT64){
+            if (!t->requires_grad){
+                printf("  grads: [");
+                for (int i = 0; i < t->size; i++){
+                    int row = i/cols;
+                    int col = i%cols;
+                    int idx = shape_index(i, rows, cols);
+                    if (col == 0 && row == 0){printf("[");}
+                    if(col == 0 && row > 0){printf("\n\t  [");}
+
+                    if (t->grad.float64){
+                        printf("%.4e", t->grad.float64[idx]);
+
+                    }
+                    if(col==cols-1){
+                        printf("]");
+                        if(row < rows-1){
+                            printf(",");
+                        }
+                    }else{
+                        printf(", ");
+                    }
+                }
+                printf("]\n");
+            }else {
+            printf("  grads:  ");
+            printf("None\n");
+            }
         }
+
+    }else{
+        printf("  data:  [");
+        for(int i=0; i<t->size; i++){
+            
+            switch (t->dtype){
+                case FLOAT32: printf("%.4f", t->data.float32[i]); break;
+                case FLOAT64: printf("%.4lf", t->data.float64[i]); break;
+                case INT32: printf("%d", t->data.int32[i]); break;
+                case INT64: printf("%lld", t->data.int64[i]); break;
+                default: printf("Unsupported type"); break;
+            }
+            if(i < t->size-1){
+                    printf(", ");
+            }
+        }
+        printf("]\n\n");
+        if(t->dtype == FLOAT32){
+            if (!t->requires_grad){
+                printf("  grads: [");
+                for (int i = 0; i < t->size; i++){
+                    printf("%.4e", t->grad.float32[i]);
+                    if(i < t->size-1){
+                        printf(", ");
+                    }
+                }
+            printf("]\n");
+            }else {
+            printf("  grads:  ");
+            printf("None\n");
+            }
+        }else if(t->dtype == FLOAT64){
+            if (!t->requires_grad){
+                printf("  grads: [");
+                for (int i = 0; i < t->size; i++){
+                    printf("%.4e", t->grad.float64[i]);
+                    if(i < t->size-1){
+                        printf(", ");
+                    }
+                }
+                printf("]\n");
+            }else {
+            printf("  grads:  ");
+            printf("None\n");
+            }
+        }
+    }
     printf("}\n");
 }
