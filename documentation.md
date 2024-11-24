@@ -40,4 +40,7 @@ In C we don't use `import` like in Python, we use `#include`.
 
 Amaizing enough `torch.h` header is the library in itself and it is just a single file. It contain functions to help you perform math operations for machine leaning and automatic differentiation capabilities.
 
-For now nan library operations are not lazy but Backpropagation is lazy, meaning it won't do backward pass operations until you realize.
+For now **nan** library operations are not lazy but Backpropagation is lazy, meaning it won't do backward pass operations until you realize.
+
+* **nan** has **AOT** support, so it run very close to hardware to achieve high performance, high speed and it give's you more cotrol.
+* **nan** support **CPU** only for now. But it will support **GPUs** and **TPUs**. 
