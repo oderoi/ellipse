@@ -44,3 +44,15 @@ For now **nan** library operations are not lazy but Backpropagation is lazy, mea
 
 * **nan** has **AOT** support, so it run very close to hardware to achieve high performance, high speed and it give's you more cotrol.
 * **nan** support **CPU** only for now. But it will support **GPUs** and **TPUs**. 
+
+## **nan** Stack
+
+|Library |Core Language|Kernel Layer|	Assembly/Hardware Layer|
+|--------|-------------|------------|-----------------------|
+|PyTorch|Python + C++|	ATen|	SIMD/AVX/CUDA/TPU instructions|
+|TensorFlow|	Python + C++|	XLA Kernels|	LLVM-generated assembly, GPU, TPU|
+TinyGrad|	Python|	Numpy/Custom Ops|	CPU SIMD, CUDA for GPU|
+|Nan   | C         |  nan   | nan  |
+
+* **nan** stack combines Kernel Layer and Assembly/Hardware Layer to make it more simple to improve, read and improve for anyone interested.
+* **nan** Assembly/Hardware Layer only supports **CPU** for now.
