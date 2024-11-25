@@ -9,7 +9,7 @@ nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpath
 
 <h3>
 
-[Home Page](README.md) | [Progress and Roadmap](Progress_and_Roadmap.md)
+[Home Page](../README.md) | [Progress and Roadmap](../Progress_and_Roadmap.md)
 
 </h3>
 
@@ -56,3 +56,9 @@ TinyGrad|	Python|	Numpy/Custom Ops|	CPU SIMD, CUDA for GPU|
 
 * **nan** stack combines Kernel Layer and Assembly/Hardware Layer to make it more simple to improve, read and improve for anyone interested.
 * **nan** Assembly/Hardware Layer only supports **CPU** for now.
+
+<h3 align="center">
+
+[Quick Start](Progress_and_Roadmap.md)
+
+</h3>

@@ -10,7 +10,7 @@ Nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpath
 
 <h3>
 
-[Home Page](README.md) | [Documentation](documentation.md)
+[Home Page](README.md) | [Documentation](Documentation/documentation.md)
 
 </h3>
 
