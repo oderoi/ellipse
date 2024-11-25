@@ -59,6 +59,6 @@ TinyGrad|	Python|	Numpy/Custom Ops|	CPU SIMD, CUDA for GPU|
 
 <h3 align="center">
 
-[Quick Start](Progress_and_Roadmap.md)
+[Quick Start](./quick_start.md)
 
 </h3>
