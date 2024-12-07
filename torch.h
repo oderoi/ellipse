@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
-#include <stdarg.h>
+// #include <stdarg.h>
+#include <omp.h>
 
 #define MAX_PREVS 3
 
@@ -16,8 +17,7 @@ typedef union
 {
     float* float32;
     double* float64;
-    int32_t* int32;
-    int64_t* int64;
+    int* Int;
     void* raw_data;
 } Data;
 
@@ -30,8 +30,7 @@ typedef union
 typedef enum{
     FLOAT32,
     FLOAT64,
-    INT32,
-    INT64
+    INT
 }DType;
 
 typedef enum{
@@ -78,8 +77,7 @@ static size_t dtype_size(DType dtype){
     switch(dtype){
         case FLOAT32: return sizeof(float);
         case FLOAT64: return sizeof(double);
-        case INT32: return sizeof(int32_t);
-        case INT64: return sizeof(int64_t);
+        case INT: return sizeof(int);
         default: return 0;
     }
 }
@@ -116,12 +114,8 @@ void t_free(Tensor* t){
         if(t->grad.float64) free(t->grad.float64);
         break;
 
-    case INT32:
-        if (t->data.int32) free(t->data.int32);
-        break;
-
-    case INT64:
-        if (t->data.int64) free(t->data.int64);
+    case INT:
+        if (t->data.Int) free(t->data.Int);
         break;
     }
     free(t);
@@ -226,26 +220,15 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
             }
             grad_mem_init(t);
             break;
-        case INT32:
-            t->data.int32 = (int32_t*) calloc(t->size, sizeof(int32_t));
-            if(!t->data.int32){
+        case INT:
+            t->data.Int = (int*) calloc(t->size, sizeof(int));
+            if(!t->data.Int){
                 fprintf(stderr, "Memory allocation for data failed\n");
                 t_free(t);
                 return NULL;
             }
             if(data){
-                memcpy(t->data.int32, data, t->size*sizeof(int32_t));
-            }
-            break;
-        case INT64:
-            t->data.int64 = (int64_t*) calloc(t->size, sizeof(int64_t));
-            if(!t->data.int64){
-                fprintf(stderr, "Memory allocation for data failed\n");
-                t_free(t);
-                return NULL;
-            }
-            if(data){
-                memcpy(t->data.int64, data, t->size*sizeof(int64_t));
+                memcpy(t->data.Int, data, t->size*sizeof(int));
             }
             break;
         default:
@@ -291,18 +274,11 @@ Tensor * transpose(Tensor *self){
                 }
             }
             break;
-        case INT32:
+        case INT:
             for (int i = 0; i < self->size; i++){
                 int idx = shape_index(i, rows, cols);
                 int t_idx = T_index(i, rows, cols);
-                t->data.int32[t_idx] = self->data.int32[idx];
-            }
-            break;
-        case INT64:
-            for (int i = 0; i < self->size; i++){
-                int idx = shape_index(i, rows, cols);
-                int t_idx = T_index(i, rows, cols);
-                t->data.int64[t_idx] = self->data.int64[idx];
+                t->data.Int[t_idx] = self->data.Int[idx];
             }
             break;
         default:
@@ -356,18 +332,11 @@ Tensor * reshape(Tensor *self, int *dims, int ndim){
                 }
             }
             break;
-        case INT32:
+        case INT:
             for (int i = 0; i < size; i++){
                 int s_idx = Reshape_index(i, new_rows, new_cols);
                 int idx = shape_index(i, old_rows, old_cols);
-                t->data.int32[s_idx] = self->data.int32[idx];
-            }
-            break;
-        case INT64:
-            for (int i = 0; i < size; i++){
-                int s_idx = Reshape_index(i, new_rows, new_cols);
-                int idx = shape_index(i, old_rows, old_cols);
-                t->data.int64[s_idx] = self->data.int64[idx];
+                t->data.Int[s_idx] = self->data.Int[idx];
             }
             break;
         default:
@@ -415,16 +384,10 @@ Tensor * flatten(Tensor * self){
                 }
             }
             break;
-        case INT32:
+        case INT:
             for (int i = 0; i < size; i++){
                 int idx = shape_index(i, rows, cols);
-                t->data.int32[i] = self->data.int32[idx];
-            }
-            break;
-        case INT64:
-            for (int i = 0; i < size; i++){
-                int idx = shape_index(i, rows, cols);
-                t->data.int64[i] = self->data.int64[idx];
+                t->data.Int[i] = self->data.Int[idx];
             }
             break;
         default:
@@ -453,16 +416,10 @@ Tensor * eye(DType dtype,int dim, bool requires_grad){
                 t->data.float64[idx] = (i / t->dims[1]) == (i % t->dims[1])? 1.0 : 0.0;
             }
             break;
-        case INT32:
+        case INT:
             for (int i = 0; i < t->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
-                t->data.int32[idx] = (i / t->dims[1]) == (i % t->dims[1])? 1 : 0;
-            }
-            break;
-        case INT64:
-            for(int i=0; i<t->size; i++){
-                int idx = shape_index(i, t->dims[0], t->dims[1]);
-                    t->data.int64[idx] = (i / t->dims[1]) == (i % t->dims[1])? 1 : 0;
+                t->data.Int[idx] = (i / t->dims[1]) == (i % t->dims[1])? 1 : 0;
             }
             break;
         default:
@@ -489,16 +446,10 @@ Tensor * zeros(DType dtype, int * dims, int ndim, bool requires_grad){
                 t->data.float64[idx] = 0.0;
             }
             break;
-        case INT32:
+        case INT:
             for(int i=0; i<t->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
-                t->data.int32[idx] = 0;
-            }
-            break;
-        case INT64:
-            for(int i=0; i<t->size; i++){
-                int idx = shape_index(i, t->dims[0], t->dims[1]);
-                t->data.int64[idx] = 0;
+                t->data.Int[idx] = 0;
             }
             break;
         default:
@@ -526,16 +477,10 @@ Tensor * ones(DType dtype, int * dims, int ndim, bool requires_grad) {
                 t->data.float64[idx] = 1.0;
             } 
             break;
-        case INT32:
+        case INT:
             for (int i = 0; i < t->size; i++) {
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
-                t->data.int32[idx] = 1;
-            }
-            break;
-        case INT64:
-            for (int i = 0; i < t->size; i++) {
-                int idx = shape_index(i, t->dims[0], t->dims[1]);
-                t->data.int64[idx] = 1;
+                t->data.Int[idx] = 1;
             }
             break;
         default:
@@ -560,26 +505,92 @@ Here’s how it works:
 Tensor * randn(DType dtype, int *dims, int ndim, bool requires_grad){
     Tensor *t = tensor(NULL, dtype, dims, ndim, requires_grad);
     if (!t) return NULL;
+
+    static int hasSpare = 0;
+    typedef union
+    {
+        float float32_spare;
+        double float64_spare;
+    } Spare;
+
+    static Spare spare;
+
+    typedef union
+    {
+        struct {
+            float s;
+            float u;
+            float v;
+        } float32_var;
+        struct {
+            double s;
+            double u;
+            double v;
+        } float64_var;
+    } rand_var;
+
+    rand_var random;
+    
     srand(time(NULL));
     switch (dtype){
-        case FLOAT32:
+        case FLOAT32: {
             for (int i = 0; i < t->size; i++){
-                float u1 = (float)rand() / (float)RAND_MAX;
-                float u2 = (float)rand() / (float)RAND_MAX;
-                int idx = shape_index(i, t->dims[0], t->dims[1]);
-                t->data.float32[idx] =(float) sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
+                // if we have a psare value from previous iteration, use it
+                if (hasSpare)
+                {
+                    hasSpare = 0;
+                    t->data.float32[i] = spare.float32_spare;
+                    continue;
+                }
+
+                //Box-Muller transform to generate standard normal distribution
+                do
+                {
+                    //Generate uniform random values between -1 and 1
+                    random.float32_var.u = ((float)rand() / ((float)RAND_MAX)) * 2.0f - 1.0f;
+                    random.float32_var.v = ((float)rand() / ((float)RAND_MAX)) * 2.0f - 1.0f;
+
+                    //Calculate radius squared
+                    random.float32_var.s = random.float32_var.u * random.float32_var.u + random.float32_var.v * random.float32_var.v;
+                } while (random.float32_var.s >= 1.0f || random.float32_var.s == 0.0f);
+
+                //Transform to normal distribution
+                random.float32_var.s = sqrt(-2.0f * log(random.float32_var.s) / random.float32_var.s);
+
+                // Store spare value for next iteration
+                spare.float32_spare = random.float32_var.s * random.float32_var.v;
+                hasSpare = 1;
+
+                // Return first generated value
+                t->data.float32[i] = random.float32_var.s * random.float32_var.u;
             }
             break;
-        case FLOAT64:
+        }    
+        case FLOAT64: {
             for (int i = 0; i < t->size; i++){
-                double u1 = (double)rand() / (double)RAND_MAX;
-                double u2 = (double)rand() / (double)RAND_MAX;
-                int idx = shape_index(i, t->dims[0], t->dims[1]);
-                t->data.float64[idx] =(double) sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
+                if (hasSpare)
+                {
+                   hasSpare = 0;
+                   t->data.float64[i] = spare.float64_spare;
+                }
+
+                do
+                {
+                    random.float64_var.u = (rand() / ((double)RAND_MAX)) * 2.0 - 1.0;
+                    random.float64_var.v = (rand() / ((double)RAND_MAX)) * 2.0 - 1.0;
+                    random.float64_var.s = random.float64_var.u * random.float64_var.u + random.float64_var.v * random.float64_var.v;
+                } while (random.float64_var.s >= 1 || random.float64_var.s == 0);
+
+                random.float64_var.s = sqrt(-2.0 * log(random.float64_var.s) / random.float64_var.s);
+                spare.float64_spare = random.float64_var.s * random.float64_var.v;
+                hasSpare = 1;
+                t->data.float64[i] = random.float64_var.s * random.float64_var.u;
+                
+                
             }
             break;
-        case INT32:
-        case INT64:
+        }
+        case INT:
             free(t);
             fprintf(stderr, " \"randn\" not implemented for \'int\' dtype \n"); 
             return NULL;
@@ -609,8 +620,7 @@ Tensor * randd(DType dtype, int * dims, int ndim, bool requires_grad){
                 t->data.float64[idx] = (double)rand() / (double)RAND_MAX;
                 }
             break;
-        case INT32:
-        case INT64:
+        case INT:
             t_free(t);
             fprintf(stderr," \"randd\" not implemented for \'int\' dtype \n"); 
             return NULL;
@@ -658,6 +668,7 @@ Tensor * add(Tensor * t1, Tensor * t2){
 
     switch(t1->dtype){
         case FLOAT32:
+            #pragma omp parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
                 int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
@@ -667,6 +678,7 @@ Tensor * add(Tensor * t1, Tensor * t2){
             
             break;
         case FLOAT64:
+            #pragma omp parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
                 int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
@@ -674,20 +686,13 @@ Tensor * add(Tensor * t1, Tensor * t2){
                 t->data.float64[idx] = t1->data.float64[idx1] + t2->data.float64[idx2];
             }
             break;
-        case INT32:
+        case INT:
+            #pragma omp parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
                 int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
                 int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
-                t->data.int32[idx] = t1->data.int32[idx1] + t2->data.int32[idx2];
-            }
-            break;
-        case INT64:
-            for(int i=0; i<t1->size; i++){
-                int idx = shape_index(i, t->dims[0], t->dims[1]);
-                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
-                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
-                t->data.int64[idx] = t1->data.int64[idx1] + t2->data.int64[idx2];
+                t->data.Int[idx] = t1->data.Int[idx1] + t2->data.Int[idx2];
             }
             break;
         default:
@@ -708,6 +713,7 @@ void add_backward(Tensor * out){
     if(!out->prevs[0]->requires_grad){
         switch (out->dtype){
             case FLOAT32:
+                #pragma omp parallel for simd //multithreading and simd
                 for(int i=0; i<out->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     int out_idx = shape_index(i, out->dims[0], out->dims[1]);
@@ -715,6 +721,7 @@ void add_backward(Tensor * out){
                 }
                 break;
             case FLOAT64:
+                #pragma omp parallel for simd //multithreading and simd
                 for(int i=0; i<out->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     int out_idx = shape_index(i, out->dims[0], out->dims[1]);
@@ -730,6 +737,7 @@ void add_backward(Tensor * out){
     if(out->prevs[1]->requires_grad==true){
         switch (out->dtype){
             case FLOAT32:
+                #pragma omp parallel for simd //multithreading and simd
                 for(int i=0; i<out->size; i++){
                     int idx = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
                     int out_idx = shape_index(i, out->dims[0], out->dims[1]);
@@ -737,6 +745,7 @@ void add_backward(Tensor * out){
                 }
                 break;
             case FLOAT64:
+                #pragma omp parallel for simd //multithreading and simd
                 for(int i=0; i<out->size; i++){
                     int idx = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
                     int out_idx = shape_index(i, out->dims[0], out->dims[1]);
@@ -765,6 +774,7 @@ Tensor * sub(Tensor * t1, Tensor * t2){
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
     switch(t1->dtype){
         case FLOAT32:
+            #pragma omp parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
                 int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
@@ -773,6 +783,7 @@ Tensor * sub(Tensor * t1, Tensor * t2){
             }
             break;
         case FLOAT64:
+            #pragma omp parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
                 int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
@@ -780,21 +791,15 @@ Tensor * sub(Tensor * t1, Tensor * t2){
                 t->data.float64[idx] = t1->data.float64[idx1] - t2->data.float64[idx2];
             }
             break;
-        case INT32:
+        case INT:
+            #pragma omp parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
                 int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
                 int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
-                t->data.int32[idx] = t1->data.int32[idx1] - t2->data.int32[idx2];
+                t->data.Int[idx] = t1->data.Int[idx1] - t2->data.Int[idx2];
             }
             break;
-        case INT64:
-            for(int i=0; i<t1->size; i++){
-                int idx = shape_index(i, t->dims[0], t->dims[1]);
-                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
-                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
-                t->data.int64[idx] = t1->data.int64[idx1] - t2->data.int64[idx2];
-            }
         default:
             t_free(t);
             fprintf(stderr, "Unsupported data type \n");
@@ -813,6 +818,7 @@ void sub_backward(Tensor * out){
     if(out->prevs[0]->requires_grad==true){
         switch (out->dtype){
             case FLOAT32:
+                #pragma omp parallel for simd //multithreading and simd
                 for(int i=0; i<out->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     int out_idx = shape_index(i, out->dims[0], out->dims[1]);
@@ -820,6 +826,7 @@ void sub_backward(Tensor * out){
                 }
                 break;
             case FLOAT64:
+                #pragma omp parallel for simd //multithreading and simd
                 for(int i=0; i<out->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     int out_idx = shape_index(i, out->dims[0], out->dims[1]);
@@ -835,6 +842,7 @@ void sub_backward(Tensor * out){
     if(out->prevs[1]->requires_grad==true){
         switch (out->dtype){
             case FLOAT32:
+                #pragma omp parallel for simd //multithreading and simd
                 for(int i=0; i<out->size; i++){
                     int idx = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
                     int out_idx = shape_index(i, out->dims[0], out->dims[1]);
@@ -842,6 +850,7 @@ void sub_backward(Tensor * out){
                 }
                 break;
             case FLOAT64:
+                #pragma omp parallel for simd //multithreading and simd
                 for(int i=0; i<out->size; i++){
                     int idx = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
                     int out_idx = shape_index(i, out->dims[0], out->dims[1]);
@@ -872,14 +881,19 @@ Tensor * mul(Tensor *t1, Tensor *t2){
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
     switch(t1->dtype){
         case FLOAT32:
+            // double start_time = omp_get_wtime();
+            #pragma omp parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
                 int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
                 int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
                 t->data.float32[idx] = t1->data.float32[idx1] * t2->data.float32[idx2];
             }
+            // double parallel_time = omp_get_wtime() - start_time;
+            // printf("\n%f\n", parallel_time);
             break;
         case FLOAT64:
+            #pragma omp parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
                 int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
@@ -887,21 +901,15 @@ Tensor * mul(Tensor *t1, Tensor *t2){
                 t->data.float64[idx] = t1->data.float64[idx1] * t2->data.float64[idx2];
             }
             break;
-        case INT32:
+        case INT:
+            #pragma omp parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
                 int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
                 int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
-                t->data.int32[idx] = t1->data.int32[idx1] * t2->data.int32[idx2];
+                t->data.Int[idx] = t1->data.Int[idx1] * t2->data.Int[idx2];
             }
             break;
-        case INT64:
-            for(int i=0; i<t1->size; i++){
-                int idx = shape_index(i, t->dims[0], t->dims[1]);
-                int idx1 = shape_index(i, t1->dims[0], t1->dims[1]);
-                int idx2 = shape_index(i, t2->dims[0], t2->dims[1]);
-                t->data.int64[idx] = t1->data.int64[idx1] * t2->data.int64[idx2];
-            }
         default:
             free(t);
             fprintf(stderr, "Unsupported data type \n");
@@ -920,6 +928,7 @@ void mul_backward(Tensor * out){
     if(out->prevs[0]->requires_grad==true){
         switch (out->dtype){
             case FLOAT32:
+                #pragma omp parallel for simd //multithreading and simd
                 for(int i=0; i<out->size; i++){
                     int idx1 = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     int idx2 = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
@@ -928,6 +937,7 @@ void mul_backward(Tensor * out){
                 }
                 break;
             case FLOAT64:
+                #pragma omp parallel for simd //multithreading and simd
                 for(int i=0; i<out->size; i++){
                     int idx1 = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     int idx2 = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
@@ -944,6 +954,7 @@ void mul_backward(Tensor * out){
     if(out->prevs[1]->requires_grad == true){
         switch (out->dtype){
             case FLOAT32:
+                #pragma omp parallel for simd //multithreading and simd
                 for(int i=0; i<out->size; i++){
                     int idx1 = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     int idx2 = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
@@ -952,6 +963,7 @@ void mul_backward(Tensor * out){
                 }
                 break;
             case FLOAT64:
+                #pragma omp parallel for simd //multithreading and simd
                 for(int i=0; i<out->size; i++){
                     int idx1 = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     int idx2 = shape_index(i, out->prevs[1]->dims[0], out->prevs[1]->dims[1]);
@@ -973,7 +985,7 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
     int m = t1->dims[0];
     int n = t2->dims[1];
     int l = t1->dims[1];
-    int dims[]=(int[]){m, n};
+    int dims[]={m, n};
     if(t1->dims[1]!= t2->dims[0] || t1->dtype != t2->dtype){
         return NULL;
     }
@@ -982,6 +994,7 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
+            #pragma omp parallel for simd collapse(2) //multithreading and simd
             for(int i = 0; i < m; i++){
                 for (int j = 0; j < n; j++){
                     for (int k = 0; k < l; k++)
@@ -992,6 +1005,7 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
             }
             break;
         case FLOAT64:
+            #pragma omp parallel for simd collapse(2) //multithreading and simd
             for(int i=0; i<m; i++){
                 for(int j=0; j<n; j++){
                     for(int k=0; k<l; k++){
@@ -1000,20 +1014,12 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
                 }
             }
             break;
-        case INT32:
+        case INT:
+             #pragma omp parallel for simd collapse(2) //multithreading and simd
             for(int i=0; i<m; i++){
                 for(int j=0; j<n; j++){
                     for(int k=0; k<l; k++){
-                        t->data.int32[i*n + j] += t1->data.int32[i*l + k] * t2->data.int32[k*n + j];
-                    }
-                }
-            }
-            break;
-        case INT64:
-            for(int i=0; i<m; i++){
-                for(int j=0; j<n; j++){
-                    for(int k=0; k<l; k++){
-                        t->data.int64[i*n + j] += t1->data.int64[i*l + k] * t2->data.int64[k*n + j];
+                        t->data.Int[i*n + j] += t1->data.Int[i*l + k] * t2->data.Int[k*n + j];
                     }
                 }
             }
@@ -1039,6 +1045,7 @@ void matmul_backward(Tensor * out){
     switch(out->dtype){
         case FLOAT32:
             if(out->prevs[0]->requires_grad == true){
+                #pragma omp parallel for simd collapse(2) //multithreading and simd
                 for(int i=0; i<m; i++){
                     for(int k=0; k<l; k++){
                         for(int j=0; j<n; j++){
@@ -1048,6 +1055,7 @@ void matmul_backward(Tensor * out){
                 }
             }
             if(out->prevs[1]->requires_grad == true){
+                #pragma omp parallel for simd collapse(2) //multithreading and simd
                 for(int k=0; k<l; k++){
                     for(int j=0; j<n; j++){
                         for(int i=0; i<m; i++){
@@ -1059,6 +1067,7 @@ void matmul_backward(Tensor * out){
             break;
         case FLOAT64:
             if(out->prevs[0]->requires_grad == true){
+                #pragma omp parallel for simd collapse(2) //multithreading and simd
                 for(int i=0; i<m; i++){
                     for(int k=0; k<l; k++){
                         for(int j=0; j<n; j++){
@@ -1068,6 +1077,7 @@ void matmul_backward(Tensor * out){
                 }
             }
             if(out->prevs[1]->requires_grad == true){
+                #pragma omp parallel for simd collapse(2) //multithreading and simd
                 for(int k=0; k<l; k++){
                     for(int j=0; j<n; j++){
                         for(int i=0; i<m; i++){
@@ -1098,27 +1108,24 @@ Tensor * Div( Tensor * t1, Tensor *t2){
 
     switch (t1->dtype){
     case FLOAT32:
+        #pragma opm parallel for simd //multithreading and simd
         for (int i = 0; i < t1->size; i++){
             int idx = shape_index(i, t->dims[0], t->dims[1]);
             t->data.float32[idx] = t1->data.float32[idx] / t2->data.float32[idx];
         }
         break;
     case FLOAT64:
+        #pragma opm parallel for simd //multithreading and simd
         for (int i = 0; i < t1->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
             t->data.float64[idx] = t1->data.float64[idx] / t2->data.float64[idx];
         }
         break;
-    case INT32:
+    case INT:
+        #pragma opm parallel for simd //multithreading and simd
         for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t->dims[0], t->dims[1]);
-            t->data.float32[idx] = t1->data.int32[idx] / t2->data.int32[idx];
-        }
-        break;
-    case INT64:
-        for(int i=0; i<t1->size; i++){
-                int idx = shape_index(i, t->dims[0], t->dims[1]);
-            t->data.float64[idx] = t1->data.int64[idx] / t2->data.int64[idx];
+            t->data.float32[idx] = t1->data.Int[idx] / t2->data.Int[idx];
         }
         break;
     default:
@@ -1141,12 +1148,14 @@ void Div_backward(Tensor *out){
     switch (out->dtype){
     case FLOAT32:
         if(out->prevs[0]->requires_grad==true){
+            #pragma opm parallel for simd //multithreading and simd
             for (int i = 0; i < out->size; i++){
                 int idx = shape_index(i, out->dims[0], out->dims[1]);
                 out->prevs[0]->grad.float32[idx] += out->grad.float32[idx]/out->prevs[1]->data.float32[idx]; 
             }
         }
         if(out->prevs[1]->requires_grad==true){
+            #pragma opm parallel for simd //multithreading and simd
             for (int i = 0; i < out->size; i++){
                 int idx = shape_index(i, out->dims[0], out->dims[1]);
                 out->prevs[1]->grad.float32[idx] += (-out->grad.float32[idx] * out->prevs[0]->data.float32[idx]) / pow(out->prevs[1]->data.float32[idx] , 2);
@@ -1156,12 +1165,14 @@ void Div_backward(Tensor *out){
 
     case FLOAT64:
         if(out->prevs[0]->requires_grad==true){
+            #pragma opm parallel for simd //multithreading and simd
             for (int i = 0; i < out->size; i++){
                 int idx = shape_index(i, out->dims[0], out->dims[1]);
                 out->prevs[0]->grad.float64[idx] += out->grad.float64[idx]/out->prevs[1]->data.float64[idx]; 
             }
         }
         if(out->prevs[1]->requires_grad==true){
+            #pragma opm parallel for simd //multithreading and simd
             for (int i = 0; i < out->size; i++){
                 int idx = shape_index(i, out->dims[0], out->dims[1]);
                 out->prevs[1]->grad.float64[idx] += (-out->grad.float64[idx] * out->prevs[0]->data.float64[idx]) / pow(out->prevs[1]->data.float64[idx] , 2);
@@ -1190,17 +1201,19 @@ Tensor* Pow(Tensor *t1, double exponent){
             }
             break;
 
-        case FLOAT64:
+        case FLOAT64: 
+            #pragma opm parallel for simd //multithreading and simd
             for (int i = 0; i < t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float64[idx] = pow(t1->data.float64[idx], exponent);
             }
             break;
 
-        case INT32:
+        case INT:
+            #pragma opm parallel for simd //multithreading and simd
             for (int i = 0; i < t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
-                t->data.int32[idx] =(int32_t)pow((double)t1->data.int32[idx], exponent);
+                t->data.Int[idx] =(int)pow((double)t1->data.Int[idx], exponent);
             }
             // if (!t1->requires_grad)
             // {
@@ -1210,13 +1223,6 @@ Tensor* Pow(Tensor *t1, double exponent){
             // }else{
             //     t->grad.float32 = NULL;
             // }
-            break;
-        
-        case INT64:
-            for (int i = 0; i < t1->size; i++){
-                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
-                t->data.int64[idx] = (int64_t)pow((double)t1->data.int64[idx], exponent);
-            }
             break;
 
         default:
@@ -1238,6 +1244,7 @@ void Pow_backward(Tensor * out){
     switch (out->dtype){
         case FLOAT32:
             if(out->prevs[0]->requires_grad==true){
+                #pragma opm parallel for simd //multithreading and simd
                 for (int i = 0; i < out->prevs[0]->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     out->prevs[0]->grad.float32[idx] += out->grad.float32[idx] * (float)out->extra * powf(out->prevs[0]->data.float32[idx], ((float)out->extra-1));
@@ -1247,6 +1254,7 @@ void Pow_backward(Tensor * out){
 
         case FLOAT64:
             if(out->prevs[0]->requires_grad==true){
+                #pragma opm parallel for simd //multithreading and simd
                 for (int i = 0; i < out->prevs[0]->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     out->prevs[0]->grad.float64[idx] += out->grad.float64[idx] * out->extra * pow(out->prevs[0]->data.float64[idx], (out->extra-1));
@@ -1270,27 +1278,24 @@ Tensor * Exp(Tensor *t1){
     switch (t1->dtype)
     {
         case FLOAT32:
+            #pragma opm parallel for simd //multithreading and simd
             for (int i = 0; i < t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float32[idx] = expf(t->data.float32[idx]);
             }
             break;
         case FLOAT64:
+            #pragma opm parallel for simd //multithreading and simd
             for (int i = 0; i < t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float64[idx] = exp(t->data.float64[idx]);
             }
             break;
-        case INT32:
+        case INT:
+            #pragma opm parallel for simd //multithreading and simd
             for (int i = 0; i < t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
-                t->data.float32[idx] = exp((float)t->data.int32[idx]);
-            }
-            break;
-        case INT64:
-            for (int i = 0; i < t1->size; i++){
-                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
-                t->data.float64[idx] = exp((double)t->data.int64[idx]);
+                t->data.float32[idx] = exp((float)t->data.Int[idx]);
             }
             break;
         default:
@@ -1311,6 +1316,7 @@ void Exp_backward(Tensor * out){
     switch (out->dtype){
         case FLOAT32:
             if(out->prevs[0]->requires_grad==true){
+                #pragma opm parallel for simd //multithreading and simd
                 for (int i = 0; i < out->prevs[0]->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     out->prevs[0]->grad.float32[idx] += out->grad.float32[idx] * expf(out->prevs[0]->data.float32[idx]);
@@ -1320,6 +1326,7 @@ void Exp_backward(Tensor * out){
 
         case FLOAT64:
             if(out->prevs[0]->requires_grad==true){
+                #pragma opm parallel for simd //multithreading and simd
                 for (int i = 0; i < out->prevs[0]->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     out->prevs[0]->grad.float64[idx] += out->grad.float64[idx] * exp(out->prevs[0]->data.float64[idx]);
@@ -1341,27 +1348,24 @@ Tensor * relu(Tensor *t1){
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float32[idx] = (t1->data.float32[idx]<0) ? 0 : (t1->data.float32[idx]);
             }
             break;
         case FLOAT64:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float64[idx] = (t1->data.float64[idx]<0) ? 0 : (t1->data.float64[idx]);
             }
             break;
-        case INT32:
+        case INT:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
-                t->data.int32[idx] = (t1->data.int32[idx]<0) ? 0 : (t1->data.int32[idx]);
-            }
-            break;
-        case INT64:
-            for(int i=0; i<t1->size; i++){
-                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
-                t->data.int64[idx] = (t1->data.int64[idx]<0) ? 0 : (t1->data.int64[idx]);
+                t->data.Int[idx] = (t1->data.Int[idx]<0) ? 0 : (t1->data.Int[idx]);
             }
             break;
         default:
@@ -1380,12 +1384,14 @@ void relu_backward(Tensor * out){
     if(out->prevs[0]->requires_grad == true){
         switch(out->dtype){
         case FLOAT32:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<out->prevs[0]->size; i++){
                 int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                 out->prevs[0]->grad.float32[idx] += (out->data.float32[idx] < 0) ? 0 : (out->grad.float32[idx]);
             }
             break;
         case FLOAT64:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<out->prevs[0]->size; i++){
                 int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                 out->prevs[0]->grad.float64[idx] += (out->data.float64[idx] < 0) ? 0 : (out->grad.float64[idx]);
@@ -1406,25 +1412,22 @@ Tensor * leaky_relu(double negative_slope, Tensor *t1){
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float32[idx] = (t1->data.float32[idx]<0) ? ((float)negative_slope * t1->data.float32[idx]) : (t1->data.float32[idx]);
             }
             break;
         case FLOAT64:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float64[idx] = (t1->data.float64[idx]<0) ? (negative_slope * t1->data.float64[idx]) : (t1->data.float64[idx]);
             }
             break;
-        case INT32:
+        case INT:
             t_free(t);
             fprintf(stderr, " \"leaky_relu\" not implemented for 'int32' \n");
-            return NULL;
-            break;
-        case INT64:
-            t_free(t);
-            fprintf(stderr, " \"leaky_relu\" not implemented for 'int64' \n");
             return NULL;
             break;
         default:
@@ -1445,6 +1448,7 @@ void leaky_relu_backward(Tensor * out){
     if(out->prevs[0]->requires_grad == true){
         switch(out->dtype){
         case FLOAT32:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<out->prevs[0]->size; i++){
                 int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                 out->prevs[0]->grad.float32[idx] += (out->data.float32[idx]<0) ? ((float)out->extra * out->grad.float32[idx]) : (out->grad.float32[idx]);
@@ -1452,6 +1456,7 @@ void leaky_relu_backward(Tensor * out){
             break;
 
         case FLOAT64:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<out->prevs[0]->size; i++){
                 int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                 out->prevs[0]->grad.float64[idx] += (out->data.float64[idx]<0) ? (out->extra * out->grad.float64[idx]) : (out->grad.float64[idx]);
@@ -1475,27 +1480,24 @@ Tensor * Tanh(Tensor * t1){
 
     switch(t1->dtype){
         case FLOAT32:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float32[idx] = (exp(2*t1->data.float32[idx]) - 1) / (exp(2*t1->data.float32[idx]) + 1);
             }
             break;
         case FLOAT64:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float64[idx] = (exp(2*t1->data.float64[idx]) - 1) / (exp(2*t1->data.float64[idx]) + 1);
             }
             break;
-        case INT32:
+        case INT:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
-                t->data.float32[idx] = (exp(2*t1->data.int32[idx]) - 1) / (exp(2*t1->data.int32[idx]) + 1);
-            }
-            break;
-        case INT64:
-            for(int i=0; i<t1->size; i++){
-                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
-                t->data.float64[idx] = (exp(2*t1->data.int64[idx]) - 1) / (exp(2*t1->data.int64[idx]) + 1);
+                t->data.float32[idx] = (exp(2*t1->data.Int[idx]) - 1) / (exp(2*t1->data.Int[idx]) + 1);
             }
             break;
 
@@ -1518,12 +1520,14 @@ void Tanh_backward(Tensor * out){
     if(out->prevs[0]->requires_grad==true){
         switch(out->dtype){
         case FLOAT32:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<out->prevs[0]->size; i++){
                 int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                 out->prevs[0]->grad.float32[idx] += (1 - pow(out->data.float32[idx], 2)) * out->grad.float32[idx];
             }
             break;
         case FLOAT64:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<out->prevs[0]->size; i++){
                 int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                 out->prevs[0]->grad.float64[idx] += (1 - pow(out->data.float64[idx], 2)) * out->grad.float64[idx];
@@ -1546,27 +1550,24 @@ Tensor * Sigmoid(Tensor * t1){
 
     switch(t1->dtype){
         case FLOAT32:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float32[idx] = 1 / (1 + exp(-t1->data.float32[idx]));
             }
             break;
         case FLOAT64:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float64[idx] = 1 / (1 + exp(-t1->data.float64[idx]));
             }
             break;
-        case INT32:
+        case INT:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i=0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
-                t->data.float32[idx] = 1 / (1 + exp(-t1->data.int32[idx]));
-            }
-            break;
-        case INT64:
-            for(int i=0; i<t1->size; i++){
-                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
-                t->data.float64[idx] = 1 / (1 + exp(-t1->data.int64[idx]));
+                t->data.float32[idx] = 1 / (1 + exp(-t1->data.Int[idx]));
             }
             break;
         default:
@@ -1588,12 +1589,14 @@ void Sigmoid_backward(Tensor * out){
     if(out->prevs[0]->requires_grad == true){
         switch(out->prevs[0]->dtype){
             case FLOAT32:
+                #pragma opm parallel for simd //multithreading and simd
                 for(int i=0; i<out->prevs[0]->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     out->prevs[0]->grad.float32[idx] += out->data.float32[idx] * (1 - out->data.float32[idx]) * out->grad.float32[idx];
                 }
                 break;
             case FLOAT64:
+                #pragma opm parallel for simd //multithreading and simd
                 for(int i=0; i<out->prevs[0]->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     out->prevs[0]->grad.float64[idx] += out->data.float64[idx] * (1 - out->data.float64[idx]) * out->grad.float64[idx];
@@ -1671,15 +1674,9 @@ Tensor * softmax(Tensor *t1){
             free(ex_double);
             break;
 
-        case INT32:
+        case INT:
             t_free(t);
             fprintf(stderr, " \"softmax\" not implemented for 'int32' \n");
-            return NULL;
-            break;
-
-        case INT64:
-            t_free(t);
-            fprintf(stderr, " \"softmax\" not implemented for 'int64' \n");
             return NULL;
             break;
 
@@ -1744,28 +1741,26 @@ Tensor * sum(Tensor * t1){
 
     switch(t1->dtype){
         case FLOAT32:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i = 0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float32[0] += t1->data.float32[idx];
             }
             break;
         case FLOAT64:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i = 0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float64[0] += t1->data.float64[idx];
             }
             break;
-        case INT32:
+        case INT:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i = 0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
-                t->data.int32[0] += t1->data.int32[idx];
+                t->data.Int[0] += t1->data.Int[idx];
             }
             break;
-        case INT64:
-            for(int i = 0; i<t1->size; i++){
-                int idx = shape_index(i, t1->dims[0], t1->dims[1]);
-                t->data.int64[0] += t1->data.int64[idx];
-            }
         default:
             free(t);
             fprintf(stderr, "Unsupported data type \n");
@@ -1785,12 +1780,14 @@ void sum_backward(Tensor * out){
         switch (out->dtype)
         {
         case FLOAT32:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i = 0; i<out->prevs[0]->size; i++){
                 int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                 out->prevs[0]->grad.float32[idx] += out->grad.float32[0] * 1.0f;
             }
             break;
         case FLOAT64:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i = 0; i<out->prevs[0]->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     out->prevs[0]->grad.float64[idx] += out->grad.float64[0] * 1.0;
@@ -1813,6 +1810,7 @@ Tensor * mean(Tensor * t1){
 
     switch(t1->dtype){
         case FLOAT32:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i = 0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float32[0] += t1->data.float32[idx];
@@ -1820,21 +1818,16 @@ Tensor * mean(Tensor * t1){
             t->data.float32[0] = t->data.float32[0]/t1->size;
             break;
         case FLOAT64:
+            #pragma opm parallel for simd //multithreading and simd
             for(int i = 0; i<t1->size; i++){
                 int idx = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float64[0] += t1->data.float64[idx];
             }
             t->data.float64[0] = t->data.float64[0]/t1->size;
             break;
-        case INT32:
+        case INT:
             t_free(t);
             fprintf(stderr, " mean(): could not infer output dtype. Input dtype must be either a floating point or complex dtype. Got: int32 \n");
-            return NULL;
-            break;
-
-        case INT64:
-            t_free(t);
-            fprintf(stderr, " mean(): could not infer output dtype. Input dtype must be either a floating point or complex dtype. Got: int64 \n");
             return NULL;
             break;
 
@@ -1862,6 +1855,7 @@ void mean_backward(Tensor * out){
                     fprintf(stderr, "Gradient memory not allocated\n");
                     return;
                 }
+                #pragma opm parallel for simd //multithreading and simd
                 for(int i=0; i < out->prevs[0]->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     out->prevs[0]->grad.float32[idx] += out->grad.float32[0] / out->prevs[0]->size;
@@ -1873,6 +1867,7 @@ void mean_backward(Tensor * out){
                     fprintf(stderr, "Gradient memory not allocated\n");
                     return;
                 }
+                #pragma opm parallel for simd //multithreading and simd
                 for(int i=0; i < out->prevs[0]->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     out->prevs[0]->grad.float64[idx] += out->grad.float64[0] / out->prevs[0]->size;
@@ -1905,6 +1900,7 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
     
     switch (yPred->dtype){
         case FLOAT32:
+            #pragma opm parallel for simd //multithreading and simd
             for (int i = 0; i < yPred->size; i++){
                 int idx = shape_index(i, yPred->dims[0], yPred->dims[1]);
                 t->data.float32[0] += powf((yPred->data.float32[idx] - yTrue->data.float32[idx]), 2.0f);
@@ -1913,6 +1909,7 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
             
             break;
         case FLOAT64:
+            #pragma opm parallel for simd //multithreading and simd
             for (int i = 0; i < yPred->size; i++){
                 int idx = shape_index(i, yPred->dims[0], yPred->dims[1]);
                 t->data.float64[0] += pow((yPred->data.float64[idx] - yTrue->data.float64[idx]), (double)2.0);
@@ -1921,13 +1918,7 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
             
             break;
 
-        case INT32:
-            t_free(t);
-            fprintf(stderr, " RuntimeError: \"mse_cpu\" not implemented for 'Int' \n");
-            return NULL;
-            break;
-
-        case INT64:
+        case INT:
             t_free(t);
             fprintf(stderr, " RuntimeError: \"mse_cpu\" not implemented for 'Int' \n");
             return NULL;
@@ -1951,12 +1942,14 @@ void MSELoss_backward(Tensor * out){
     if(!out->requires_grad){
         switch (out->dtype){
             case FLOAT32:
+                #pragma opm parallel for simd //multithreading and simd
                 for (int i = 0; i < out->prevs[0]->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     out->prevs[0]->grad.float32[idx] += (float)(1/out->prevs[0]->size) * (out->prevs[0]->data.float32[idx] - out->prevs[1]->data.float32[idx]) * out->grad.float32[0];
                 }
                 break;
             case FLOAT64:
+                #pragma opm parallel for simd //multithreading and simd
                 for (int i = 0; i < out->prevs[0]->size; i++){
                     int idx = shape_index(i, out->prevs[0]->dims[0], out->prevs[0]->dims[1]);
                     out->prevs[0]->grad.float64[idx] += (double)(1/out->prevs[0]->size) * (out->prevs[0]->data.float64[idx] - out->prevs[1]->data.float64[idx]) * out->grad.float64[0];
@@ -2019,8 +2012,7 @@ void print(Tensor* t){
     switch(t->dtype){
         case FLOAT32: printf("float32\n"); break;
         case FLOAT64: printf("float64\n"); break;
-        case INT32: printf("int32\n"); break;
-        case INT64: printf("int64\n"); break;
+        case INT: printf("int\n"); break;
         default: printf("unknown\n"); break;
     }
 
@@ -2045,8 +2037,7 @@ void print(Tensor* t){
             switch (t->dtype){
                 case FLOAT32: printf("%.4f", t->data.float32[idx]); break;
                 case FLOAT64: printf("%.4lf", t->data.float64[idx]); break;
-                case INT32: printf("%d", t->data.int32[idx]); break;
-                case INT64: printf("%lld", t->data.int64[idx]); break;
+                case INT: printf("%d", t->data.Int[idx]); break;
                 default: printf("Unsupported type"); break;
             }
             if(col==cols-1){
@@ -2124,8 +2115,7 @@ void print(Tensor* t){
             switch (t->dtype){
                 case FLOAT32: printf("%.4f", t->data.float32[i]); break;
                 case FLOAT64: printf("%.4lf", t->data.float64[i]); break;
-                case INT32: printf("%d", t->data.int32[i]); break;
-                case INT64: printf("%lld", t->data.int64[i]); break;
+                case INT: printf("%d", t->data.Int[i]); break;
                 default: printf("Unsupported type"); break;
             }
             if(i < t->size-1){
