@@ -1,22 +1,18 @@
 #include "torch.h"
-// #include <stdio.h>
-// #include <omp.h>
 
 int main() {
-    Tensor *A = randn(FLOAT32, (int[]){10, 50}, 2, true);
-    Tensor *B = randn(FLOAT32, (int[]){50, 10}, 2, false);
+    Tensor *x = randn(FLOAT32, (int[]){2, 3}, 2, true);
+    Tensor *w = randd(FLOAT32, (int[]){3, 2}, 2, true);
+    Tensor *yTrue = tensor((float[]){1, 2, 3, 4, 5, 6, 7, 8, 9}, FLOAT32, (int[]){3, 3}, 2, true);
 
-    Tensor *C = matmul(A, B);
+    Tensor *yPred = matmul(w, x);
 
-    print(C);
+    Tensor *loss = MSELoss(yTrue, yPred);
+    grad_init(loss);
+    backward(loss);
+
+    print(w);
+    print(loss);
 
     return 0;
 }
-
-// int main(){
-//     #pragma omp parallel
-//     {
-//         printf("Hello from thread %d out of %d threads\n",omp_get_thread_num(), omp_get_num_threads());
-//     }
-//     return 0;
-// }
