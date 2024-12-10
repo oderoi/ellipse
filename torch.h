@@ -10,7 +10,7 @@
 #define MAX_PREVS 3
 
 struct Tensor *transpose(struct Tensor *self);
-struct Tensor *reshape(struct Tensor *self, int *shape, int ndim); 
+struct Tensor *reshape(struct Tensor *self, int *shape); 
 struct Tensor *flatten(struct Tensor *self);
 
 typedef union
@@ -70,7 +70,7 @@ typedef struct Tensor{
     bool requires_grad;
     int num_prevs;
     struct Tensor *(*T)(struct Tensor *self);
-    struct Tensor *(*reshape)(struct Tensor *self, int *shape, int ndim);
+    struct Tensor *(*reshape)(struct Tensor *self, int *shape);
     struct Tensor *(*flatten)(struct Tensor *self);
 }Tensor;
 
@@ -90,6 +90,7 @@ static int total_size(int * dims, int ndim){
     }
     return size;
 }
+
 static int *copy_dims(const int *dims, int ndim){
     int *new_dims = (int *)malloc(sizeof(int)*ndim);
     if(!new_dims) return NULL;
@@ -170,8 +171,7 @@ static void grad_mem_init(Tensor * self){
     }
 }
 
-Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_grad){
-    if(!dims || ndim <= 0) return NULL;
+Tensor * tensor(void * data, DType dtype, int * dims, bool requires_grad){
     //allocate memory for the tensor structure
     Tensor *t = (Tensor *)malloc(sizeof(Tensor));
     if(!t){
@@ -179,8 +179,8 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
         return NULL;
     }
     t->dtype = dtype;
-    t->size = total_size(dims, ndim);
-    t->ndim = ndim;
+    t->ndim = sizeof(dims)/sizeof(int);
+    t->size = total_size(dims, t->ndim);
     t->extra = 0;
     t->requires_grad = requires_grad;
     t->op = -1;
@@ -188,8 +188,10 @@ Tensor * tensor(void * data, DType dtype, int * dims, int ndim, bool requires_gr
     t->T=transpose;
     t->reshape = reshape;
     t->flatten = flatten;
+    
+    if(!dims || t->ndim <= 0) return NULL;
 
-    t->dims = copy_dims(dims, ndim);
+    t->dims = copy_dims(dims, t->ndim);
     if(!t->dims){
         fprintf(stderr, "Memory allocation for dims failed\n");
         t_free(t);
@@ -251,7 +253,7 @@ Tensor * transpose(Tensor *self){
     
     int new_dims[2] = {cols, rows};
 
-    Tensor * t = tensor(NULL, self->dtype, new_dims, 2, self->requires_grad);
+    Tensor * t = tensor(NULL, self->dtype, new_dims, self->requires_grad);
     if(!t) return NULL;
 
     switch (self->dtype){
@@ -290,19 +292,19 @@ Tensor * transpose(Tensor *self){
     return t;
 }
 
-Tensor * reshape(Tensor *self, int *dims, int ndim){
+Tensor * reshape(Tensor *self, int *dims){
     if(!self || self->ndim!= 2){
         fprintf(stderr, "Cannot reshape a tensor with %d dimensions\n", self->ndim);
         return NULL;
     }
 
-    int size = total_size(dims, ndim);
+    int size = total_size(dims, self->ndim);
     if(size!= self->size){
         fprintf(stderr, "Reshaping tensor of size %d to %d is not possible\n", self->size, size);
         return NULL;
     }
 
-    Tensor * t = tensor(NULL, self->dtype, dims, ndim, self->requires_grad);
+    Tensor * t = tensor(NULL, self->dtype, dims, self->requires_grad);
     if(!t) return NULL;
 
     int old_rows = self->dims[0];
@@ -360,7 +362,7 @@ Tensor * flatten(Tensor * self){
         return NULL;
     }
 
-    Tensor * t = tensor(NULL, self->dtype, &size, 1, self->requires_grad);
+    Tensor * t = tensor(NULL, self->dtype, &size, self->requires_grad);
     if(!t) return NULL;
 
     int rows = self->dims[0];
@@ -400,7 +402,7 @@ Tensor * flatten(Tensor * self){
 }
 
 Tensor * eye(DType dtype,int dim, bool requires_grad){
-    Tensor *t = tensor(NULL, dtype, (int[]){dim, dim}, (int)2, requires_grad);
+    Tensor *t = tensor(NULL, dtype, (int[]){dim, dim}, requires_grad);
     if(!t) return NULL;
 
     t->size = total_size(t->dims, t->ndim);
@@ -431,8 +433,8 @@ Tensor * eye(DType dtype,int dim, bool requires_grad){
     return t;
 }
 
-Tensor * zeros(DType dtype, int * dims, int ndim, bool requires_grad){
-    Tensor *t = tensor(NULL, dtype, dims, ndim, requires_grad);
+Tensor * zeros(DType dtype, int * dims, bool requires_grad){
+    Tensor *t = tensor(NULL, dtype, dims, requires_grad);
     if(!t)return NULL;
     switch(dtype){
         case FLOAT32:
@@ -461,8 +463,8 @@ Tensor * zeros(DType dtype, int * dims, int ndim, bool requires_grad){
     return t;
 }
     
-Tensor * ones(DType dtype, int * dims, int ndim, bool requires_grad) {
-    Tensor *t = tensor(NULL, dtype, dims, ndim, requires_grad);
+Tensor * ones(DType dtype, int * dims, bool requires_grad) {
+    Tensor *t = tensor(NULL, dtype, dims, requires_grad);
     if(!t) return NULL;
     //Fill with ones based on dtype
     switch (dtype){
@@ -503,8 +505,8 @@ Here’s how it works:
 	•	Around 99.7% will fall within ±3.
 */
 
-Tensor * randn(DType dtype, int *dims, int ndim, bool requires_grad){
-    Tensor *t = tensor(NULL, dtype, dims, ndim, requires_grad);
+Tensor * randn(DType dtype, int *dims, bool requires_grad){
+    Tensor *t = tensor(NULL, dtype, dims, requires_grad);
     if (!t) return NULL;
 
     static int hasSpare = 0;
@@ -604,8 +606,8 @@ Tensor * randn(DType dtype, int *dims, int ndim, bool requires_grad){
     return t;
 }
 
-Tensor * randd(DType dtype, int * dims, int ndim, bool requires_grad){
-    Tensor *t = tensor(NULL, dtype, dims, ndim, requires_grad);
+Tensor * randd(DType dtype, int * dims, bool requires_grad){
+    Tensor *t = tensor(NULL, dtype, dims, requires_grad);
     if (!t) return NULL;  
     // srand(time(NULL));
     switch (dtype){
@@ -660,12 +662,12 @@ void grad_init(Tensor * self){
 Tensor * add(Tensor * t1, Tensor * t2){
     if (!t1 || !t2) return NULL;
     if(t1->ndim != t2->ndim || t1->dtype != t2->dtype) return NULL;
-    for(int i=0; i<t1->ndim; i++){
+    for(int i=0; i < t1->ndim; i++){
         if(t1->dims[i] != t2->dims[i]) return NULL;
     }
 
     int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
 
     switch(t1->dtype){
         case FLOAT32:
@@ -755,7 +757,7 @@ Tensor * sub(Tensor * t1, Tensor * t2){
     }
 
     int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     switch(t1->dtype){
         case FLOAT32:
             #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
@@ -845,7 +847,7 @@ Tensor * mul(Tensor *t1, Tensor *t2){
     }
 
     int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     switch(t1->dtype){
         case FLOAT32:
             // double start_time = omp_get_wtime();
@@ -936,7 +938,7 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
         return NULL;
     }
     int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
-    Tensor * t = tensor(NULL, t1->dtype, dims, t1->ndim, require_grad);
+    Tensor * t = tensor(NULL, t1->dtype, dims, require_grad);
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
@@ -1049,7 +1051,7 @@ Tensor * Div( Tensor * t1, Tensor *t2){
     }
 
     int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
 
     switch (t1->dtype){
@@ -1130,7 +1132,7 @@ Tensor* Pow(Tensor *t1, double exponent){
     if(!t1)return NULL;
     int require_grad = (!t1->requires_grad)? true: false;
 
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
@@ -1207,7 +1209,7 @@ void Pow_backward(Tensor * out){
 Tensor * Exp(Tensor *t1){
     if(!t1) return NULL;
     int require_grad = (!t1->requires_grad)? true: false;
-    Tensor *t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
+    Tensor *t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
 
     switch (t1->dtype)
@@ -1274,7 +1276,7 @@ void Exp_backward(Tensor * out){
 Tensor * relu(Tensor *t1){
     if(!t1) return NULL;
     int require_grad = (!t1->requires_grad)? true: false;
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
@@ -1333,7 +1335,7 @@ void relu_backward(Tensor * out){
 Tensor * leaky_relu(double negative_slope, Tensor *t1){
     if(!t1) return NULL;
     int require_grad = (!t1->requires_grad)? true: false;
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
@@ -1396,7 +1398,7 @@ void leaky_relu_backward(Tensor * out){
 Tensor * Tanh(Tensor * t1){
     if(!t1) return NULL;
     int require_grad = (!t1->requires_grad)? true : false;
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
 
     switch(t1->dtype){
@@ -1463,7 +1465,7 @@ void Tanh_backward(Tensor * out){
 Tensor * Sigmoid(Tensor * t1){
     if(!t1) return NULL;
     int require_grad = (!t1->requires_grad)? true:false;
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
 
     switch(t1->dtype){
@@ -1526,7 +1528,7 @@ void Sigmoid_backward(Tensor * out){
 Tensor * softmax(Tensor *t1){
     if(!t1) return NULL;
     int require_grad = (!t1->requires_grad)? true : false;
-    Tensor * t = tensor(NULL, t1->dtype, t1->dims, t1->ndim, require_grad);
+    Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
 
     float s_float = 0.0f;
@@ -1649,7 +1651,7 @@ void softmax_backward(Tensor *out){
 Tensor * sum(Tensor * t1){
     if(!t1) return NULL;
     int require_grad = (!t1->requires_grad)? true : false;
-    Tensor *t=tensor(NULL, t1->dtype, (int[]){1}, 1, require_grad);
+    Tensor *t=tensor(NULL, t1->dtype, (int[]){1}, require_grad);
     if (!t) return NULL;
 
     switch(t1->dtype){
@@ -1719,7 +1721,7 @@ void sum_backward(Tensor * out){
 Tensor * mean(Tensor * t1){
     if(!t1) return NULL;
     int require_grad = (!t1->requires_grad)? true : false;
-    Tensor *t = tensor(NULL, t1->dtype, (int[]){1}, 1, require_grad);
+    Tensor *t = tensor(NULL, t1->dtype, (int[]){1}, require_grad);
     if(!t) return NULL;
 
     switch(t1->dtype){
@@ -1821,7 +1823,7 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
 
     int require_grad = (!yPred->requires_grad)? true : false;
 
-    Tensor *t = tensor(NULL, yPred->dtype, (int[]){1}, 1, require_grad);
+    Tensor *t = tensor(NULL, yPred->dtype, (int[]){1}, require_grad);
     if(!t){
         fprintf(stderr, "Memory allocation for MSE tensor failed\n");
         return NULL;
@@ -1922,7 +1924,7 @@ Tensor * MAELoss(Tensor * yTrue, Tensor * yPred){
 
     int required_grad = (!yPred->requires_grad)? true : false;
 
-    Tensor * t = tensor(NULL, yPred->dtype, (int[]){1}, 1, required_grad);
+    Tensor * t = tensor(NULL, yPred->dtype, (int[]){1}, required_grad);
     if (!t)
     {
         fprintf(stderr, "Memory allocation for MAE tensor failed\n");
