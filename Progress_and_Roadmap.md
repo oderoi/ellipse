@@ -212,7 +212,7 @@ s_1 (1 - s_1) & -s_1 s_2 & \cdots & -s_1 s_n \\
 | Loss Function                   | Type                   | When to Use                             | Advantages                           | Disadvantages                          |Status  |
 |---------------------------------|------------------------|-----------------------------------------|--------------------------------------|----------------------------------------|--------|
 | **Mean Squared Error (MSE)**    | Regression             | Regression with continuous targets      | Simple, differentiable               | Sensitive to outliers                  |   ✅   |
-| **Mean Absolute Error (MAE)**   | Regression             | Regression with noisy data              | Less sensitive to outliers           | Less smooth gradient                   |   ❌   |
+| **Mean Absolute Error (MAE)**   | Regression             | Regression with noisy data              | Less sensitive to outliers           | Less smooth gradient                   |   ✅   |
 | **Cross-Entropy**               | Classification         | Binary or multi-class classification    | Works well with probabilistic models | Sensitive to class imbalance           |   ❌   |
 | **Hinge Loss (SVM)**            | Classification         | Support Vector Machines (SVM)           | Efficient for margin classifiers     | Not suitable for probabilistic tasks   |   ❌   |
 | **Huber Loss**                  | Regression             | Regression with outliers                | Robust to outliers, smooth           | Requires tuning of threshold $\delta$  |   ❌   |    
@@ -249,6 +249,28 @@ Formula:
 
 
 $\text{MAE} = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|$
+
+The derivative of MAE with respect to each prediction $\hat{y}_i$ is:
+
+$
+\frac{\partial \text{MAE}}{\partial \hat{y}_i} = 
+\begin{cases}
+-\frac{1}{n}, & \text{if } \hat{y}_i > y_i \\
+\frac(1){n}, & \text{if } \hat{y}_i < y_i
+\end{cases}
+$
+
+Where:
+-	 $y_i  = True value$
+-	 $\hat{y}_i  = Predicted value$
+-	$n  = Number of data points$
+
+
+Handling Non-Differentiability at $y_i = \hat{y}_i$:
+
+- At $y_i = \hat{y}_i$, the derivative is undefined because the slope of the absolute value changes abruptly. In practice:
+    - For optimization algorithms, $0# or small gradient value is often used.
+    - Some frameworks introduce smooth approximations to $|x|$ (e.g, Huber loss) to avoid the issue of non-differentiability.
 
 How it Works:
 

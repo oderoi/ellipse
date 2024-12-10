@@ -48,7 +48,8 @@ typedef enum{
     DIV,
     POW,
     EXP,
-    MSE
+    MSE,
+    MAE
 }Op;
 
 typedef enum{
@@ -531,7 +532,7 @@ Tensor * randn(DType dtype, int *dims, int ndim, bool requires_grad){
 
     rand_var random;
     
-    srand(time(NULL));
+    // srand(time(NULL));
     switch (dtype){
         case FLOAT32: {
             for (int i = 0; i < t->size; i++){
@@ -606,7 +607,7 @@ Tensor * randn(DType dtype, int *dims, int ndim, bool requires_grad){
 Tensor * randd(DType dtype, int * dims, int ndim, bool requires_grad){
     Tensor *t = tensor(NULL, dtype, dims, ndim, requires_grad);
     if (!t) return NULL;  
-    srand(time(NULL));
+    // srand(time(NULL));
     switch (dtype){
         case FLOAT32:
             for (int i = 0; i < t->size; i++) {
@@ -1818,7 +1819,7 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
         }
     }
 
-    int require_grad = (yPred->requires_grad == true);
+    int require_grad = (!yPred->requires_grad)? true : false;
 
     Tensor *t = tensor(NULL, yPred->dtype, (int[]){1}, 1, require_grad);
     if(!t){
@@ -1841,7 +1842,7 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
             double dloss = 0.0;  // Scalar reduction variable
             #pragma omp parallel for simd reduction(+:dloss) //multithreading and simd reduction(+:loss)
             for (int i = 0; i < yPred->size; i++){
-                double ddiff = yPred->data.float64[i] - yTrue->data.float64[i];
+                double ddiff = yTrue->data.float64[i] - yPred->data.float64[i];
                 dloss += ddiff * ddiff;
             }
             dloss = dloss / (2.0 * yPred->size);
@@ -1859,40 +1860,163 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
-    t->op=MSE;
-    t->prevs[0] = yPred;
-    t->prevs[1] = yTrue;
+    t->op = MSE;
+    t->prevs[0] = yTrue;
+    t->prevs[1] = yPred;
     t->num_prevs = 2;
     return t;
 }
 
 void MSELoss_backward(Tensor * out){
-    if(!out || !out->requires_grad) return;  //Null checks
+    if(!out) return;  //Null checks
 
     if(out->requires_grad == true){
         switch (out->dtype){
             case FLOAT32:
-            float fscale = out->grad.float32[0] / (float)out->prevs[0]->size;     
+                float fscale = -out->grad.float32[0] / (float)out->prevs[0]->size;     
                 #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
                 for (int i = 0; i < out->prevs[0]->size; i++){
                     float fgrad = (out->prevs[0]->data.float32[i] - out->prevs[1]->data.float32[i]) * fscale;//Gradient of MSE
-                    out->prevs[0]->grad.float32[i] += fgrad ; //chain rule
-                }
+                    out->prevs[1]->grad.float32[i] += fgrad ; //chain rule
+                }   
                 break;
             case FLOAT64:
-                double dscale = out->grad.float64[0] / (double)out->prevs[0]->size;
+                double dscale = -out->grad.float64[0] / (double)out->prevs[0]->size;
                 #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
                 for (int i = 0; i < out->prevs[0]->size; i++){
                     double dgrad = (out->prevs[0]->data.float64[i] - out->prevs[1]->data.float64[i]) * dscale;  //Gradient of MSE
-                    out->prevs[0]->grad.float64[i] += dgrad;  //chain rule
+                    out->prevs[1]->grad.float64[i] += dgrad;  //chain rule
                 }
                 break;
-        case INT:
-            fprintf(stderr, "Backward pass not implemented for 'Int'\n");
-            break;
-        default:
-            fprintf(stderr, "Unsupported data type in backward pass\n");
-            break;
+            case INT:
+                fprintf(stderr, "Backward pass not implemented for 'Int'\n");
+                break;
+            default:
+                fprintf(stderr, "Unsupported data type in backward pass\n");
+                break;
+        }
+    }
+}
+
+Tensor * MAELoss(Tensor * yTrue, Tensor * yPred){
+    if (!yPred || !yTrue)
+    {
+        fprintf(stderr, "Input Tensor cannot be NULL\n");
+        return NULL;
+    }
+
+    if (yPred->dtype != yTrue->dtype || yPred->ndim != yTrue->ndim || yPred->size != yTrue->size)
+    {
+        fprintf(stderr, "Incompatible Tensors DType or Dimmension");
+        return NULL;
+    }
+
+    for (int i = 0; i < yPred->ndim; i++)
+    {
+        if (yPred->dims[i] != yTrue->dims[i])
+        {
+            fprintf(stderr, "Tensor Dimmesions do not match!\n");
+            return NULL;
+        } 
+    }
+
+    int required_grad = (!yPred->requires_grad)? true : false;
+
+    Tensor * t = tensor(NULL, yPred->dtype, (int[]){1}, 1, required_grad);
+    if (!t)
+    {
+        fprintf(stderr, "Memory allocation for MAE tensor failed\n");
+        return NULL;
+    }
+
+    switch (t->dtype)
+    {
+    case FLOAT32:
+        float floss = 0.0f; //scalar value for loss
+        #pragma omp parallel for simd reduction(+:floss) //multithreading and simd for scalar accumulated value
+        for (int i = 0; i < yPred->size; i++)
+        {
+            floss += fabsf(yTrue->data.float32[i] - yPred->data.float32[i]);
+        }
+        t->data.float32[0] = floss / yPred->size;
+        break;
+    case FLOAT64:
+        double dloss = 0.0; //scalar value for loss
+        #pragma omp parallel for simd reduction(+:dloss) //multithreading and simd for scalar accumulated value
+        for (int i = 0; i < yPred->size; i++)
+        {
+            dloss += fabsf(yTrue->data.float64[i] - yPred->data.float64[i]);
+        }
+        t->data.float64[0] = dloss / yPred->size;
+        break;
+    case INT:
+        t_free(t);
+        fprintf(stderr, " RuntimeError: \"mae_cpu\" not implemented for 'Int' \n");
+        return NULL;
+        break;
+    default:
+        t_free(t);
+        fprintf(stderr, "Unsupported data type \n");
+        return NULL;
+    }   
+
+    t->op = MAE;
+    t->prevs[0] = yTrue;
+    t->prevs[1] = yPred;
+    t->num_prevs = 2;
+    return t;
+}
+
+void MAELoss_backward(Tensor * out){
+    if (!out) //NULL check
+    {
+        return;
+    }
+
+    if (out->requires_grad == true)
+    {
+        switch (out->dtype)
+        {
+            case FLOAT32:
+                #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
+                for (int i = 0; i < out->prevs[1]->size; i++)
+                {
+                    if (out->prevs[1]->data.float32[i] > out->prevs[0]->data.float32[i])
+                    {
+                        out->prevs[1]->grad.float32[i] = -out->grad.float32[0] / out->prevs[1]->size;
+                    } else if (out->prevs[1]->data.float32[i] < out->prevs[0]->data.float32[i])
+                    {
+                        out->prevs[1]->grad.float32[i] = out->grad.float32[0] / out->prevs[1]->size;
+                    } else
+                    {
+                        out->prevs[1]->grad.float32[i] = 0.0f;
+                    }
+                    
+                    
+                }
+                break;
+            case FLOAT64:
+                #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
+                for (int i = 0; i < out->prevs[1]->size; i++)
+                {
+                    if (out->prevs[1]->data.float64[i] > out->prevs[0]->data.float64[i])
+                    {
+                        out->prevs[1]->grad.float64[i] = -out->grad.float64[0] / out->prevs[1]->size;
+                    } else if (out->prevs[1]->data.float64[i] < out->prevs[0]->data.float64[i])
+                    {
+                        out->prevs[1]->grad.float64[i] = out->grad.float64[0] / out->prevs[1]->size;
+                    } else
+                    {
+                        out->prevs[1]->grad.float64[i] = 0.0;
+                    }
+                }
+                break;
+            case INT:
+                fprintf(stderr, "Backward pass not implemented for 'Int'\n");
+                break;
+            default:
+                fprintf(stderr, "Unsupported data type in backward pass\n");
+                break;
         }
     }
 }
@@ -1921,7 +2045,7 @@ void backward(Tensor * t){
         Sigmoid_backward(t);
     }else if(t->op == SOFTMAX){
         softmax_backward(t);
-    }else if(t->op ==POW){
+    }else if(t->op == POW){
         Pow_backward(t);
     }else if(t->op == EXP){
         Exp_backward(t);
@@ -1929,12 +2053,14 @@ void backward(Tensor * t){
         Div_backward(t);
     }else if(t->op == SUM){
         sum_backward(t);
-    }else if (t->op == MSE)
+    }else if(t->op == MSE){
+        MSELoss_backward(t);
+    }else if (t->op == MAE)
     {
-        MSELoss_backward;
+        MAELoss_backward(t);
     }
     
-
+    
     for(int i=0; i<t->num_prevs; i++){
         backward(t->prevs[i]);
     }
