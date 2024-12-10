@@ -252,13 +252,13 @@ $\text{MAE} = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|$
 
 The derivative of MAE with respect to each prediction $\hat{y}_i$ is:
 
-$
+$$
 \frac{\partial \text{MAE}}{\partial \hat{y}_i} = 
 \begin{cases}
 -\frac{1}{n}, & \text{if } \hat{y}_i > y_i \\
 \frac(1){n}, & \text{if } \hat{y}_i < y_i
 \end{cases}
-$
+$$
 
 Where:
 -	 $y_i  = True value$
