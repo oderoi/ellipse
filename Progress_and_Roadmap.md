@@ -256,7 +256,7 @@ $$
 \frac{\partial \text{MAE}}{\partial \hat{y}_i} = 
 \begin{cases}
 -\frac{1}{n}, & \text{if } \hat{y}_i > y_i \\
-\frac(1){n}, & \text{if } \hat{y}_i < y_i
+\frac{1}{n}, & \text{if } \hat{y}_i < y_i
 \end{cases}
 $$
 
