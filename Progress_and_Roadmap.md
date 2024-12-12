@@ -156,7 +156,7 @@ i.	Activations
 | Hardtanh      |  $f(x) = \{\text{max-val,} \text{ if } {x} > \text{max-val } \; \\ \text{min-val,} \text{ if } {x} < \text{min-val } \; \\ {x,} \text{ otherwise }\}$ |   ❌   |
 | ReLU6      |  $f(x) = \{{0} \text{ if } {x} \leq {0} \; \\ {x} \text{ if } {0} < { x } < {6}\; \\ {6} \text{ if } {x} \geq {6}\}$ |   ❌   |
 | Hardsigmoid      |  $f(x) = \{ {0} \text{ if } {x} < {-2.5} \; \\ {0.2x + 0.5} \text{ if } {-2.5} \leq { x } \leq {2.5} \; \\ {1} \text{ if } {x} > {2.5} \}$ |   ❌   |
-| SiLU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
+| SiLU      |  $f(x) = \frac{x}{1 + e^{-x}}$ |   ❌   |
 | Mish      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | Hardswish      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | ELU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
