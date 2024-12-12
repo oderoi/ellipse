@@ -153,7 +153,7 @@ i.	Activations
 | LeakyReLU|  $\text{LeakyReLU({x})} = \{ {x} \text{ if } x \geq {0} \; \alpha{x} \text{ if } {x } < {0} \}$                                  |   ✅   |
 | Threshold      | $f(x) = \{ 1 \text{ if } x \geq \theta \; 0 \text{ if } x < \theta \}$ |   ❌   |
 | RReLU      |  $f(x) = \{ {x} \text{ if } x \geq \theta \; \text{r}\cdot{x} \text{ if } x < \theta \}$ |   ❌   |
-| Hardtanh      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
+| Hardtanh      |  $f(x) = \{\text{max_val,} \text{ if } {x} > \text{max_val} \; \\ \text{min_val,} \text{ if } {x} < \text{min_val,} \; \\ {x,} \text{ otherwise }\}$ |   ❌   |
 | ReLU6      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | Hardsigmoid      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | SiLU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
