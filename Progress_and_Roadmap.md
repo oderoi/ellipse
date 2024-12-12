@@ -151,7 +151,37 @@ i.	Activations
 | tanh      |  $\text{tanh}(x) = \frac{1 - e^{-2x}}{1 + e^{-2x}}$  |   ✅   |
 | softmax   |  $\text{Sofmax}{(x_i)} = \frac{e^{x_i - \text{max(x)}}}{\sum_{j}{e^{x_j - \text{max(x)}}}}$  |   ✅   |
 | LeakyReLU| $\text{LeakyReLU({x})} = \bigg( \frac{{x }\ \text{ if } {x }  \geq\ 0} {\alpha {x}  \text{ if } {x } < 0}$                                   |   ✅   |
-| mean      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| Threshold      | 
+\[
+f(x) =
+\begin{cases} 
+1 & \text{if } x \geq \theta, \\
+0 & \text{if } x < \theta,
+\end{cases}
+\] |   ✅   |
+| RReLU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| Hardtanh      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| ReLU6      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| Hardsigmoid      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| SiLU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| Mish      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| Hardswish      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| ELU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| CELU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| SELU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| GLU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| GELU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| Hardshrink      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| LogSigmoid      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| Softplus      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| Softshrink      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| MultiheadAttention      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| PReLU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| Softsign      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| Tanhshrink      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| Softmin      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| Softmax2d      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
+| LogSoftmax      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
 
 - Note: Softmax Numerical Stability
     - When  x  has large values,  $e^{x_i}$  may overflow. For numerical stability, PyTorch internally subtracts the maximum value from  $x$  before applying the softmax:

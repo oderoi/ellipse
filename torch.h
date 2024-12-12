@@ -49,7 +49,8 @@ typedef enum{
     POW,
     EXP,
     MSE,
-    MAE
+    MAE,
+    LOG
 }Op;
 
 typedef enum{
@@ -166,12 +167,12 @@ static void grad_mem_init(Tensor * self){
         }
     }else{
         fprintf(stderr, "Unsupported dtype for grad memory allocation\n");
-        t_free(self);
+        // t_free(self);
         return;
     }
 }
 
-Tensor * tensor(void * data, DType dtype, int * dims, bool requires_grad){
+Tensor * tensor(void * data, DType dtype, int * dims,  bool requires_grad){
     //allocate memory for the tensor structure
     Tensor *t = (Tensor *)malloc(sizeof(Tensor));
     if(!t){
@@ -236,7 +237,7 @@ Tensor * tensor(void * data, DType dtype, int * dims, bool requires_grad){
             break;
         default:
             fprintf(stderr, "Unsupported data type\n");
-            t_free(t);
+            // t_free(t);
             return NULL;
     }
     return t;
@@ -285,7 +286,7 @@ Tensor * transpose(Tensor *self){
             }
             break;
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -343,7 +344,7 @@ Tensor * reshape(Tensor *self, int *dims){
             }
             break;
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -394,7 +395,7 @@ Tensor * flatten(Tensor * self){
             }
             break;
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;  
     }
@@ -426,7 +427,7 @@ Tensor * eye(DType dtype,int dim, bool requires_grad){
             }
             break;
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -456,7 +457,7 @@ Tensor * zeros(DType dtype, int * dims, bool requires_grad){
             }
             break;
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -629,7 +630,7 @@ Tensor * randd(DType dtype, int * dims, bool requires_grad){
             return NULL;
             // break;
         default:
-            free(t);
+            // free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -690,7 +691,7 @@ Tensor * add(Tensor * t1, Tensor * t2){
             }
             break;
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -719,7 +720,7 @@ void add_backward(Tensor * out){
                 }
                 break;
             default:
-                t_free(out);
+                // t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
         }
@@ -739,7 +740,7 @@ void add_backward(Tensor * out){
                 }
                 break;
             default:
-                t_free(out);
+                // t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
         }
@@ -778,7 +779,7 @@ Tensor * sub(Tensor * t1, Tensor * t2){
             }
             break;
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -807,7 +808,7 @@ void sub_backward(Tensor * out){
                 }
                 break;           
             default:
-                t_free(out);
+                // t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
         }
@@ -827,7 +828,7 @@ void sub_backward(Tensor * out){
                 }
                 break;
             default:
-                t_free(out);
+                // t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
         }
@@ -900,7 +901,7 @@ void mul_backward(Tensor * out){
                 }
                 break;
             default:
-                t_free(out);
+                // t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
         }
@@ -920,7 +921,7 @@ void mul_backward(Tensor * out){
                 }
                 break;
             default:
-                t_free(out);
+                // t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
         }
@@ -973,7 +974,7 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
             }
             break;
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1036,7 +1037,7 @@ void matmul_backward(Tensor * out){
             }
             break;
         default:
-            t_free(out);
+            // t_free(out);
             fprintf(stderr, "Unsupported data type \n");
             return;
     }
@@ -1074,7 +1075,7 @@ Tensor * Div( Tensor * t1, Tensor *t2){
         }
         break;
     default:
-        t_free(t);
+        // t_free(t);
         fprintf(stderr, "Unsupported data type \n");
         return NULL;
         break;
@@ -1121,7 +1122,7 @@ void Div_backward(Tensor *out){
         }
         break;    
     default:
-        t_free(out);
+        // t_free(out);
         fprintf(stderr, "Unsupported data type \n");
         return;
         break;
@@ -1165,7 +1166,7 @@ Tensor* Pow(Tensor *t1, double exponent){
             break;
 
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
             break;           
@@ -1199,7 +1200,7 @@ void Pow_backward(Tensor * out){
             }
             break;
         default:
-        t_free(out);
+        // t_free(out);
         fprintf(stderr, "Unsupported data type \n");
         return ;
         break;
@@ -1233,7 +1234,7 @@ Tensor * Exp(Tensor *t1){
             }
             break;
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
             break;           
@@ -1266,7 +1267,7 @@ void Exp_backward(Tensor * out){
             }
             break;
         default:
-        t_free(out);
+        // t_free(out);
         fprintf(stderr, "Unsupported data type \n");
         return ;
         break;
@@ -1298,7 +1299,7 @@ Tensor * relu(Tensor *t1){
             }
             break;
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1325,7 +1326,7 @@ void relu_backward(Tensor * out){
             }
             break;
         default:
-            t_free(out);
+            // t_free(out);
             fprintf(stderr, "Unsupported data type \n");
             return;
         }
@@ -1356,7 +1357,7 @@ Tensor * leaky_relu(double negative_slope, Tensor *t1){
             return NULL;
             break;
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1387,7 +1388,7 @@ void leaky_relu_backward(Tensor * out){
             break;
 
         default:
-            t_free(out);
+            // t_free(out);
             fprintf(stderr, "Unsupported data type \n");
             return;
         }
@@ -1424,7 +1425,7 @@ Tensor * Tanh(Tensor * t1){
             break;
 
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1455,7 +1456,7 @@ void Tanh_backward(Tensor * out){
             break;
 
         default:
-            t_free(out);
+            // t_free(out);
             fprintf(stderr, "Unsupported data type \n");
             return;
         }
@@ -1488,7 +1489,7 @@ Tensor * Sigmoid(Tensor * t1){
             }
             break;
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1518,7 +1519,7 @@ void Sigmoid_backward(Tensor * out){
                 }
                 break;
             default:
-                t_free(out);
+                // t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 return;
             }
@@ -1710,7 +1711,7 @@ void sum_backward(Tensor * out){
                 }
             break;
         default:
-            t_free(out);
+            // t_free(out);
             fprintf(stderr, "Unsupported data type \n");
             return;
             break;
@@ -1750,7 +1751,7 @@ Tensor * mean(Tensor * t1){
             break;
 
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1790,7 +1791,7 @@ void mean_backward(Tensor * out){
                 }
                 break;
             default:
-                t_free(out);
+                // t_free(out);
                 fprintf(stderr, "Unsupported data type \n");
                 break;
         }
@@ -1858,7 +1859,7 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
             break;
 
         default:
-            t_free(t);
+            // t_free(t);
             fprintf(stderr, "Unsupported data type \n");
             return NULL;
     }
@@ -1957,7 +1958,7 @@ Tensor * MAELoss(Tensor * yTrue, Tensor * yPred){
         return NULL;
         break;
     default:
-        t_free(t);
+        // t_free(t);
         fprintf(stderr, "Unsupported data type \n");
         return NULL;
     }   
