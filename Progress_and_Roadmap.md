@@ -152,13 +152,13 @@ i.	Activations
 | softmax   |  $\text{Sofmax}{(x_i)} = \frac{e^{x_i - \text{max(x)}}}{\sum_{j}{e^{x_j - \text{max(x)}}}}$  |   ✅   |
 | LeakyReLU| $\text{LeakyReLU({x})} = \bigg( \frac{{x }\ \text{ if } {x }  \geq\ 0} {\alpha {x}  \text{ if } {x } < 0}$                                   |   ✅   |
 | Threshold      | 
-                    \[
+                    $
                     f(x) =
                     \begin{cases} 
                     1 & \text{if } x \geq \theta, \\
                     0 & \text{if } x < \theta,
                     \end{cases}
-                    \] |   ✅   |
+                    \$ |   ✅   |
 | RReLU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
 | Hardtanh      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
 | ReLU6      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ✅   |
