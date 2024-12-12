@@ -154,8 +154,8 @@ i.	Activations
 | Threshold      | $f(x) = \{ 1 \text{ if } x \geq \theta \; 0 \text{ if } x < \theta \}$ |   ❌   |
 | RReLU      |  $f(x) = \{ {x} \text{ if } x \geq \theta \; \text{r}\cdot{x} \text{ if } x < \theta \}$ |   ❌   |
 | Hardtanh      |  $f(x) = \{\text{max-val,} \text{ if } {x} > \text{max-val } \; \\ \text{min-val,} \text{ if } {x} < \text{min-val } \; \\ {x,} \text{ otherwise }\}$ |   ❌   |
-| ReLU6      |  $f(x) = \{ {0} \text{ if } {x} < {-2.5} \; \\ {0.2x + 0.5} \text{ if } {-2.5} \leq { x } \leq {2.5} \; \\ {1} \text{ if } {x} > {2.5} \}$ |   ❌   |
-| Hardsigmoid      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
+| ReLU6      |  $f(x) = \{{0} \text{ if } {x} \leq {0} \; \\ {x} \text{ if } {0} < { x } < {6}\; \\ {6} \text{ if } {x} \geq {6}\}$ |   ❌   |
+| Hardsigmoid      |  $f(x) = \{ {0} \text{ if } {x} < {-2.5} \; \\ {0.2x + 0.5} \text{ if } {-2.5} \leq { x } \leq {2.5} \; \\ {1} \text{ if } {x} > {2.5} \}$ |   ❌   |
 | SiLU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | Mish      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | Hardswish      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
