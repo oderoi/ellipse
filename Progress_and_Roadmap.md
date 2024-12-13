@@ -209,7 +209,7 @@ ii.	Activations Derivative
 | GELU (Gaussian Error Linear Unit)      |  $\frac{\partial}{\partial x}\text{GELU}(x) = \Phi(x) + {x} \cdot \Phi(x) \quad \text{where} \quad \Phi(x) = \frac{1}{\sqrt(2\pi)}e^{-\frac{x^2}{2}}$ |   ❌   |
 |       |  GELU can be approximated as: |      |
 |       |  $\text{GELU}(x) = 0.5 \cdot x \cdot \left[ 1 + \tanh\left( \sqrt{\frac{2}{\pi}} \left( x + 0.044715 \cdot x^3 \right) \right) \right ]$ |      |
-| Hardshrink      |  $\frac{\partial \text{Hardshrink}(x)}{\partial x} = {1}  \text{if } {\|x\|} > \lambda \quad \text{;} \quad {0} \text{ if } {\|x\|} \leq \lambda$ |   ❌   |
+| Hardshrink      |  $\frac{\partial}{\partial x} \text{Hardshrink}(x) = {1}  \text{if } {\|x\|} > \lambda \quad \text{;} \quad {0} \text{ if } {\|x\|} \leq \lambda$ |   ❌   |
 | LogSigmoid      |  $\frac{d}{dx} \text{LogSigmoid}(x) = \sigma(x) \cdot (1 - \sigma(x))$ |   ❌   |
 | Softplus      |  $\frac{d}{dx} \text{Softplus}(x) = \sigma(x) = \frac{1}{1 + e^{-x}}$ |   ❌   |
 | Softshrink      |  $\frac{\partial}{\partial x}\text{Softshrink}(x, \lambda) = {1} \text{ if } > \lambda  \quad \text{;} \quad {-1} \text{ if } {x} < \-lambda  \quad \text{;} \quad {0} \text{ if } {\|x\|} \leq \lambda$ |   ❌   |
