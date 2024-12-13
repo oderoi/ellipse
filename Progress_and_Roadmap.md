@@ -162,7 +162,7 @@ i.	Activations
 | ELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0}\ \ \; \ \ \alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
 | CELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0}\ \ \; \ \ \alpha({e^\frac{x}{\alpha} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
 | SELU      |  $f(x) = \{ \lambda{x} \text{ if }{x} \geq {0}\ \ \; \ \ \lambda\alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
-| GLU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
+| GLU      |  $\text{GLU}(X) = A \odot \sigma(B)$ |   ❌   |
 | GELU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | Hardshrink      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | LogSigmoid      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
