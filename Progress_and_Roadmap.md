@@ -158,7 +158,7 @@ i.	Activations
 | Hardsigmoid      |  $f(x) = \{ {0} \text{ if } {x} < {-2.5} \; \\ {0.2x + 0.5} \text{ if } {-2.5} \leq { x } \leq {2.5} \; \\ {1} \text{ if } {x} > {2.5} \}$ |   ❌   |
 | SiLU      |  $f(x) = \frac{x}{1 + e^{-x}}$ |   ❌   |
 | Mish      |  $f(x) = {x} \cdot \text{tanh}(\text{softplus(x)})\; \ \ \text{ where : } \text{softplus(x)} = \ln{(1 + e^{x})}$ |   ❌   |
-| Hardswish      |  $f(x) = {x} \cdot \text{ReLU6}{\frac{(x + 3)}{6}}$ |   ❌   |
+| Hardswish      |  $f(x) = {x} \cdot \text{ReLU6}(\frac{(x + 3)}{6})$ |   ❌   |
 | ELU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | CELU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | SELU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
