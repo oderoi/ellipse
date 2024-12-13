@@ -215,7 +215,7 @@ ii.	Activations Derivative
 | Softshrink      |  $\frac{\partial}{\partial x}\text{Softshrink}(x, \lambda) = {1} \text{ if } > \lambda  \quad \text{;} \quad {-1} \text{ if } {x} < \-lambda  \quad \text{;} \quad {0} \text{ if } {\|x\|} \leq \lambda$ |   ❌   |
 | Multi-head Attention      |  The derivatives for multi-head attention are typically computed with respect to the attention output and can involve backpropagating through the softmax and matrix multiplication steps. |   ❌   |
 | PReLU (Parametric ReLU)     |  $\frac{\partial}{\partial x} \text{PReLU}(x) = {1} \text{ if } {x} \geq {0}   \quad \text{;} \quad \alpha \text{ if } {x} < {0}$ |   ❌   |
-| Softsign      |  $\frac{d}{dx} \text{Softsign}(x) = \frac{1}{(1 + |x|)^2}$ |   ❌   |
+| Softsign      |  $\frac{d}{dx} \text{Softsign}(x) = \frac{1}{(1 + {\|x\|})^2}$ |   ❌   |
 | Tanhshrink      |  $\frac{d}{dx} \text{TanhShrink}(x) = 1 - \text{sech}^2(x)$ |   ❌   |
 | Softmin      |  $\frac{\partial}{\partial x_i} \text{Softmin}(x_i) = -\text{Softmin}(x_i) + e^{-x_i} \sum_{j} e^{-x_j} \text{Softmin}(x_j)$ |   ❌   |
 | Softmax2d      |  $\frac{\partial}{\partial x_{i,j}} \text{Softmax2D}(x_{i,j}) = \text{Softmax2D}(x_{i,j})(1 - \text{Softmax2D}(x_{i,j}))$ |   ❌   |
