@@ -159,9 +159,9 @@ i.	Activations
 | SiLU      |  $f(x) = \frac{x}{1 + e^{-x}}$ |   ❌   |
 | Mish      |  $f(x) = {x} \cdot \text{tanh}(\text{softplus(x)})\; \ \ \text{ where : } \text{softplus(x)} = \ln{(1 + e^{x})}$ |   ❌   |
 | Hardswish      |  $f(x) = \frac{{x} \cdot \text{ReLU6}{(x + 3)}}{6} \;  \ \ \text{  where :  } \text{  ReLU6(x)} = \text{min(max({0, x}), {6})}$ |   ❌   |
-| ELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0}\ \ \; \ \ \alhpa({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
-| CELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0}\ \ \; \ \ \alhpa({e^\frac{x}{\alpha} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
-| SELU      |  $f(x) = \{ \lambda{x} \text{ if }{x} \geq {0}\ \ \; \ \ \lambda\alhpa({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
+| ELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0}\ \ \; \ \ \alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
+| CELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0}\ \ \; \ \ \alpha({e^\frac{x}{\alpha} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
+| SELU      |  $f(x) = \{ \lambda{x} \text{ if }{x} \geq {0}\ \ \; \ \ \lambda\alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
 | GLU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | GELU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | Hardshrink      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
