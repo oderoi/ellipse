@@ -163,7 +163,7 @@ i.	Activations
 | CELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0}\ \ \; \ \ \alpha({e^\frac{x}{\alpha} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
 | SELU      |  $f(x) = \{ \lambda{x} \text{ if }{x} \geq {0}\ \ \; \ \ \lambda\alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
 | GLU      |  $\text{GLU}(X) = A \odot \sigma(B)$ |   ❌   |
-|          | where: {X} is the input tensor, split into two equal parts ${A}$ and ${B}$, ${A}$ and ${B}$ represent the two halves of ${X}$, $\sigma(B)$] is the sigmoid activation function applied element-wise to ${B}$ and ⊙ denotes the element-wise (Hadamard) product. |      |
+|          | where: ${X}$ is the input tensor, split into two equal parts ${A}$ and ${B}$; ${A}$ and ${B}$ represent the two halves of ${X}$; $\sigma(B)$ is the sigmoid activation function applied element-wise to ${B}$ and ⊙ denotes the element-wise (Hadamard) product. |      |
 | GELU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | Hardshrink      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | LogSigmoid      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
