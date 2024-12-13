@@ -162,9 +162,9 @@ i.	Activations
 | ELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0}\ \ \; \ \ \alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
 | CELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0}\ \ \; \ \ \alpha({e^\frac{x}{\alpha} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
 | SELU      |  $f(x) = \{ \lambda{x} \text{ if }{x} \geq {0}\ \ \; \ \ \lambda\alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
-| GLU      |  $\text{GLU}(X) = A \odot \sigma(B)$ |   ❌   |
+| GLU  (Gated Linear Unit)    |  $\text{GLU}(X) = A \odot \sigma(B)$ |   ❌   |
 |          | where: ${X}$ is the input tensor, split into two equal parts ${A}$ and ${B}$; ${A}$ and ${B}$ represent the two halves of ${X}$; $\sigma(B)$ is the sigmoid activation function applied element-wise to ${B}$ and ⊙ denotes the element-wise (Hadamard) product. |      |
-| GELU      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
+| GELU (Gaussian Error Linear Unit)      |  $\text{GELU}(x) = x \cdot \Phi(x) \quad \text{where} \quad \Phi(x) = \frac{1}{2} \left[ 1 + \text{erf}\left( \frac{x}{\sqrt{2}} \right) \right]$ |   ❌   |
 | Hardshrink      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | LogSigmoid      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | Softplus      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
