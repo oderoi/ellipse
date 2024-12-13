@@ -201,9 +201,9 @@ ii.	Activations Derivative
 | SiLU (Sigmoid Linear Unit)     |  $f(x) = {x}\cdot\sigmoid(x) \quad {:} \quad f(x) = \frac{x}{1 + e^{-x}}$ |   ❌   |
 | Mish      |  $f(x) = {x} \cdot \text{tanh}(\text{softplus(x)}) \quad \text{;} \quad  \text{ where : } \text{softplus(x)} = \ln{(1 + e^{x})}$ |   ❌   |
 | Hardswish      |  $f(x) = \frac{{x} \cdot \text{ReLU6}{(x + 3)}}{6} \quad \text{;} \quad \text{  where :  } \text{  ReLU6(x)} = \text{min(max({0, x}), {6})}$ |   ❌   |
-| ELU (Exponential Linear Unit)     |  $f(x) = \{ {x} \text{ if }{x} \geq {0} \quad \text{;} \quad \alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
-| CELU (Continously Differentiable Exponential Linear Unit)     |  $f(x) = \{ {x} \text{ if }{x} \geq {0} \quad \text{;} \quad \alpha({e^\frac{x}{\alpha} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
-| SELU (Scale Exponential Linear Unit)     |  $f'(x) = \{ \lambda \text{ if }{x} \geq {0} \quad \text{;} \quad  \lambda\alpha({e^{x}}) \text{ if } {x} < {0}\}$ |   ❌   |
+| ELU (Exponential Linear Unit)     |  $f'(x) = \{ {1} \text{ if }{x} \geq {0} \quad \text{;} \quad \alpha({e^{x}}) \text{ if } {x} < {0}\}$ |   ❌   |
+| CELU (Continously Differentiable Exponential Linear Unit)     |  $f'(x) = \{ {1} \text{ if }{x} \geq {0} \quad \text{;} \quad ({e^\frac{x}{\alpha} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
+| SELU (Scale Exponential Linear Unit)     |  $f'(x) = \{ \lambda \text{  if  }{x} \geq {0} \quad \text{;} \quad  \lambda\alpha({e^{x}}) \text{  if  } {x} < {0}\}$ |   ❌   |
 | GLU  (Gated Linear Unit)    |  $\frac{\partial}{\partial A}\text{GLU} =\sigma(B) \quad \text{:} \quad \frac{\partial}{\partial B}\text{GLU} = {A} \odot \sigma(B){(1 - \sigma(B))}$ |   ❌   |
 |          | where: ${X}$ is the input tensor, split into two equal parts ${A}$ and ${B}$; ${A}$ and ${B}$ represent the two halves of ${X}$; $\sigma(B)$ is the sigmoid activation function applied element-wise to ${B}$ and ⊙ denotes the element-wise (Hadamard) product. |      |
 | GELU (Gaussian Error Linear Unit)      |  $\frac{\partial}{\partial x}\text{GELU}(x) = \Phi(x) + {x} \cdot \Phi(x) \quad \text{where} \quad \Phi(x) = \frac{1}{\sqrt(2\pi)}e^{-\frac{x^2}{2}}$ |   ❌   |
