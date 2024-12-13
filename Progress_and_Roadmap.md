@@ -173,7 +173,7 @@ i.	Activations
 | Softshrink      |  $\text{Softshrink}(x, \lambda) = {x - \lambda} \text{ if } > \lambda  \quad \text{;} \quad {x + \lambda} \text{ if } {x} < \-lambda  \quad \text{;} \quad {0} \text{ if } {\|x\|} \leq \lambda$ |   ❌   |
 | MultiheadAttention      |  $\text{: Multi-Head Attention :} \quad \text{MultiHead}(Q, K, V) = \text{Concat}( \text{head}_1, \text{head}_2, \dots, \text{head}_h ) W^O  \quad \text{: For each head :} \quad  \text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)  \quad \text{: Scaled Dot-Product Attention :} \quad \text{Attention}(Q, K, V) = \text{softmax}\left( \frac{QK^T}{\sqrt{d_k}} \right) V$ |   ❌   |
 | PReLU      |  $\text{PReLU}(x) = {x} \text{ if } {x} \geq {0}   \quad \text{;} \quad \alpha{x} \text{ if } {x} < {0}$ |   ❌   |
-| Softsign      |  $\text{Softsign}(x) = \frac{x}{1 + |x|}$ |   ❌   |
+| Softsign      |  $\text{Softsign}(x) = \frac{x}{1 + {\|x\|}}$ |   ❌   |
 | Tanhshrink      |  $\text{TanhShrink}(x) = x - \tanh(x)$ |   ❌   |
 | Softmin      |  $\text{Softmin}(x_i) = \frac{e^{-x_i}}{\sum_j{e^{-xj}}}$ |   ❌   |
 | Softmax2d      |  $\text{Softmax2D}(x_{i,j}) = \frac{e^{x_{i,j}}}{\sum_{i,j} e^{x_{i,j}}}$ |   ❌   |
