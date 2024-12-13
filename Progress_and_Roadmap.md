@@ -167,8 +167,8 @@ i.	Activations
 | GELU (Gaussian Error Linear Unit)      |  $\text{GELU}(x) = x \cdot \Phi(x) \quad \text{where} \quad \Phi(x) = \frac{1}{2} \left[ 1 + \text{erf}\left( \frac{x}{\sqrt{2}} \right) \right]$ |   ❌   |
 |       |  GELU can be approximated as: |      |
 |       |  $\text{GELU}(x) = 0.5 \cdot x \cdot \left[ 1 + \tanh\left( \sqrt{\frac{2}{\pi}} \left( x + 0.044715 \cdot x^3 \right) \right) \right ]$ |      |
-| Hardshrink      |  $\text{Hardshrink}(x) = {x}  \text{if } {\|x\|} > \lambda \quad \text{;} \quad {0} \text{if } {\|x\|} \leq \lambda$ |   ❌   |
-| LogSigmoid      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
+| Hardshrink      |  $\text{Hardshrink}(x) = {x}  \text{if } {\|x\|} > \lambda \quad \text{;} \quad {0} \text{ if } {\|x\|} \leq \lambda$ |   ❌   |
+| LogSigmoid      |  $\text{LogSigmoid}(x) = \log\left(\frac{1}{1 + e^{-x}}\right) \quad \text{Altenatively} \quad \text{LogSigmoid}(x) = \-log(1 + e^{-x})$ |   ❌   |
 | Softplus      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | Softshrink      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | MultiheadAttention      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
