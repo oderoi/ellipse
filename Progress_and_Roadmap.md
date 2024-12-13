@@ -146,18 +146,18 @@ i.	Activations
 
 | Task      |            Formular               | Status |
 |-----------|-----------------------------------|--------|
-| ReLU      | $\text{ReLU({x})} = \{ {x } \text{ if } {x } \geq {0} \; {0} \text{ if } {0} < {0}\}$ |   ✅   |
+| ReLU      | $\text{ReLU({x})} = \{ {x } \text{ if } {x } \geq {0} \quad \text{;} \quad {0} \text{ if } {0} < {0}\}$ |   ✅   |
 | sigmoid   |  $\sigma(x) = \frac{1}{1 + e^{-x}}$   |   ✅   |
 | tanh      |  $\text{tanh}(x) = \frac{1 - e^{-2x}}{1 + e^{-2x}}$  |   ✅   |
 | softmax   |  $\text{Sofmax}{(x_i)} = \frac{e^{x_i - \text{max(x)}}}{\sum_{j}{e^{x_j - \text{max(x)}}}}$  |   ✅   |
-| LeakyReLU|  $\text{LeakyReLU({x})} = \{ {x} \text{ if } x \geq {0} \; \alpha{x} \text{ if } {x } < {0} \}$                                  |   ✅   |
-| Threshold      | $f(x) = \{ 1 \text{ if } x \geq \theta \; 0 \text{ if } x < \theta \}$ |   ❌   |
-| RReLU      |  $f(x) = \{ {x} \text{ if } x \geq \theta \; \text{r}\cdot{x} \text{ if } x < \theta \}$ |   ❌   |
+| LeakyReLU|  $\text{LeakyReLU({x})} = \{ {x} \text{ if } x \geq {0} \quad \text{;} \quad \alpha{x} \text{ if } {x } < {0} \}$                                  |   ✅   |
+| Threshold      | $f(x) = \{ 1 \text{ if } x \geq \theta \quad \text{;} \quad {0} \text{ if } x < \theta \}$ |   ❌   |
+| RReLU      |  $f(x) = \{ {x} \text{ if } x \geq \theta \quad \text{;} \quad \text{r}\cdot{x} \text{ if } x < \theta \}$ |   ❌   |
 | Hardtanh      |  $f(x) = \{\text{max-val,} \text{ if } {x} > \text{max-val } \quad \text{;} \quad \text{min-val,} \text{ if } {x} < \text{min-val } \quad \text{;} \quad {x,} \text{ otherwise }\}$ |   ❌   |
 | ReLU6      |  $f(x) = \{{0} \text{ if } {x} \leq {0} \quad \text{;} \quad {x} \text{ if } {0} < { x } < {6} \quad \text{;} \quad {6} \text{ if } {x} \geq {6}\}$ |   ❌   |
 | Hardsigmoid      |  $f(x) = \{ {0} \text{ if } {x} < {-2.5} \quad \text{;} \quad {0.2x + 0.5} \text{ if } {-2.5} \leq { x } \leq {2.5} \quad \text{;} \quad {1} \text{ if } {x} > {2.5} \}$ |   ❌   |
 | SiLU      |  $f(x) = \frac{x}{1 + e^{-x}}$ |   ❌   |
-| Mish      |  $f(x) = {x} \cdot \text{tanh}(\text{softplus(x)})\; \ \ \text{ where : } \text{softplus(x)} = \ln{(1 + e^{x})}$ |   ❌   |
+| Mish      |  $f(x) = {x} \cdot \text{tanh}(\text{softplus(x)}) \quad \text{;} \quad  \text{ where : } \text{softplus(x)} = \ln{(1 + e^{x})}$ |   ❌   |
 | Hardswish      |  $f(x) = \frac{{x} \cdot \text{ReLU6}{(x + 3)}}{6} \quad \text{;} \quad \text{  where :  } \text{  ReLU6(x)} = \text{min(max({0, x}), {6})}$ |   ❌   |
 | ELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0} \quad \text{;} \quad \alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
 | CELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0} \quad \text{;} \quad \alpha({e^\frac{x}{\alpha} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
