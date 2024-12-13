@@ -175,7 +175,7 @@ i.	Activations
 | PReLU      |  $\text{PReLU}(x) = {x} \text{ if } {x} \geq {0}   \quad \text{;} \quad \alpha{x} \text{ if } {x} < {0}$ |   ❌   |
 | Softsign      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | Tanhshrink      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
-| Softmin      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
+| Softmin      |  $\text{Softmin}(x_i) = \frac{e^{-x_i}}{\sum_j{e^{-xj}}}$ |   ❌   |
 | Softmax2d      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 | LogSoftmax      |  $\mu = \frac{1}{n} \sum_{i=1}^n x_i$ |   ❌   |
 
