@@ -195,7 +195,7 @@ ii.	Activations Derivative
 | mean_backward      |  $\frac{\partial{\mu}}{\partial{x_i}} = \frac{1}{n}$ |   ✅   |
 | Threshold      | $f(x) = \{ 1 \text{ if } x \geq \theta \quad \text{;} \quad {0} \text{ if } x < \theta \}$ |   ❌   |
 | RReLU      |  $f(x) = \{ {x} \text{ if } x \geq \theta \quad \text{;} \quad \text{r}\cdot{x} \text{ if } x < \theta \}$ |   ❌   |
-| Hardtanh      |  $f(x) = \{\text{max-val,} \text{ if } {x} > \text{max-val } \quad \text{;} \quad \text{min-val,} \text{ if } {x} < \text{min-val } \quad \text{;} \quad {x,} \text{ otherwise }\}$ |   ❌   |
+| Hardtanh      |  $f'(x) = {0} \text{ if } {x} > \text{max-val} \text{ or } {x} < \text{ min_val} \quad \text{;} \quad {1,} \text{ if } \text{ min_val } \leq {x} \leq \text{ max_val }$ |   ❌   |
 | ReLU6      |  $f'(x) = {0} \text{ if } {x} \leq {0} \text{  or  } {x} \geq {6} \quad \text{;} \quad {1} \text{ if } {0} < {x} < {6}$ |   ❌   |
 | Hardsigmoid      |  $f'(x) =  {0.2} \text{ if } {0} \leq { x } \leq {2.5} \quad \text{;} \quad {0} \text{ otherwise }$ |   ❌   |
 | SiLU (Sigmoid Linear Unit)     |  $f'(x) = \sigma(x) \cdot {(1 + {x}\cdot{(1 - \sigma(x))})}$ |   ❌   |
