@@ -151,6 +151,7 @@ i.	Activations
 | tanh      |  $\text{tanh}(x) = \frac{1 - e^{-2x}}{1 + e^{-2x}}$  |   ✅   |
 | softmax   |  $\text{Sofmax}{(x_i)} = \frac{e^{x_i - \text{max(x)}}}{\sum_{j}{e^{x_j - \text{max(x)}}}}$  |   ✅   |
 | LeakyReLU|  $\text{LeakyReLU({x})} = \{ {x} \text{ if } x \geq {0} \quad \text{;} \quad \alpha{x} \text{ if } {x } < {0} \}$                                  |   ✅   |
+| mean      |  $f(x) = \frac{\sum_i^{n}{x_i}}{n}$ |   ✅   |
 | Threshold      | $f(x) = \{ 1 \text{ if } x \geq \theta \quad \text{;} \quad {0} \text{ if } x < \theta \}$ |   ❌   |
 | RReLU      |  $f(x) = \{ {x} \text{ if } x \geq \theta \quad \text{;} \quad \text{r}\cdot{x} \text{ if } x < \theta \}$ |   ❌   |
 | Hardtanh      |  $f(x) = \{\text{max-val,} \text{ if } {x} > \text{max-val } \quad \text{;} \quad \text{min-val,} \text{ if } {x} < \text{min-val } \quad \text{;} \quad {x,} \text{ otherwise }\}$ |   ❌   |
