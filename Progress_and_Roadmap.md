@@ -196,8 +196,8 @@ ii.	Activations Derivative
 | Threshold      | $f(x) = \{ 1 \text{ if } x \geq \theta \quad \text{;} \quad {0} \text{ if } x < \theta \}$ |   ❌   |
 | RReLU      |  $f(x) = \{ {x} \text{ if } x \geq \theta \quad \text{;} \quad \text{r}\cdot{x} \text{ if } x < \theta \}$ |   ❌   |
 | Hardtanh      |  $f(x) = \{\text{max-val,} \text{ if } {x} > \text{max-val } \quad \text{;} \quad \text{min-val,} \text{ if } {x} < \text{min-val } \quad \text{;} \quad {x,} \text{ otherwise }\}$ |   ❌   |
-| ReLU6      |  $f(x) = \min(\max(0, x), 6) \quad {:} \quad f(x) = \{{0} \text{ if } {x} \leq {0} \quad \text{;} \quad {x} \text{ if } {0} < { x } < {6} \quad \text{;} \quad {6} \text{ if } {x} \geq {6}\}$ |   ❌   |
-| Hardsigmoid      |  $f'(x) =  \{{0.2} \text{ if } {0} \leq { x } \leq {2.5}\} \quad \text{;} \quad \{{0} \text{ otherwise }\}$ |   ❌   |
+| ReLU6      |  $f'(x) = {0} \text{ if } {x} \leq {0} \text{  or  } {x} \geq {6} \quad \text{;} \quad {1} \text{ if } {0} < {x} < {6}$ |   ❌   |
+| Hardsigmoid      |  $f'(x) =  {0.2} \text{ if } {0} \leq { x } \leq {2.5} \quad \text{;} \quad {0} \text{ otherwise }$ |   ❌   |
 | SiLU (Sigmoid Linear Unit)     |  $f'(x) = \sigma(x) \cdot {(1 + {x}\cdot{(1 - \sigma(x))})}$ |   ❌   |
 | Mish      |  $f'(x) = \tanh{(\text{softplus}(x))} + {x} \cdot {(1 - \tanh^{2}(\text{softplus}(x)))} \cdot \sigma(x)$ |   ❌   |
 | Hardswish      |  $f'(x) = {0} \text{ if } < {-3} \quad \text{;} \quad \frac{2x + 3}{6} \text{ if } {-3} \leq {x} \leq {3} \quad \text{;} \quad {1} \text{ if } {x} > {3}$ |   ❌   |
@@ -207,8 +207,6 @@ ii.	Activations Derivative
 | GLU  (Gated Linear Unit)    |  $\frac{\partial}{\partial A}\text{GLU} =\sigma(B) \quad \text{:} \quad \frac{\partial}{\partial B}\text{GLU} = {A} \odot \sigma(B){(1 - \sigma(B))}$ |   ❌   |
 |          | where: ${X}$ is the input tensor, split into two equal parts ${A}$ and ${B}$; ${A}$ and ${B}$ represent the two halves of ${X}$; $\sigma(B)$ is the sigmoid activation function applied element-wise to ${B}$ and ⊙ denotes the element-wise (Hadamard) product. |      |
 | GELU (Gaussian Error Linear Unit)      |  $\frac{\partial}{\partial x}\text{GELU}(x) = \Phi(x) + {x} \cdot \Phi(x) \quad \text{where} \quad \Phi(x) = \frac{1}{\sqrt(2\pi)}e^{-\frac{x^2}{2}}$ |   ❌   |
-|       |  GELU can be approximated as: |      |
-|       |  $\text{GELU}(x) = 0.5 \cdot x \cdot \left[ 1 + \tanh\left( \sqrt{\frac{2}{\pi}} \left( x + 0.044715 \cdot x^3 \right) \right) \right ]$ |      |
 | Hardshrink      |  $\frac{\partial}{\partial x} \text{Hardshrink}(x) = {1}  \text{if } {\|x\|} > \lambda \quad \text{;} \quad {0} \text{ if } {\|x\|} \leq \lambda$ |   ❌   |
 | LogSigmoid      |  $\frac{d}{dx} \text{LogSigmoid}(x) = \sigma(x) \cdot (1 - \sigma(x))$ |   ❌   |
 | Softplus      |  $\frac{d}{dx} \text{Softplus}(x) = \sigma(x) = \frac{1}{1 + e^{-x}}$ |   ❌   |
