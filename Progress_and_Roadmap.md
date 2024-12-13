@@ -153,15 +153,15 @@ i.	Activations
 | LeakyReLU|  $\text{LeakyReLU({x})} = \{ {x} \text{ if } x \geq {0} \; \alpha{x} \text{ if } {x } < {0} \}$                                  |   ✅   |
 | Threshold      | $f(x) = \{ 1 \text{ if } x \geq \theta \; 0 \text{ if } x < \theta \}$ |   ❌   |
 | RReLU      |  $f(x) = \{ {x} \text{ if } x \geq \theta \; \text{r}\cdot{x} \text{ if } x < \theta \}$ |   ❌   |
-| Hardtanh      |  $f(x) = \{\text{max-val,} \text{ if } {x} > \text{max-val } \; \\ \text{min-val,} \text{ if } {x} < \text{min-val } \; \\ {x,} \text{ otherwise }\}$ |   ❌   |
-| ReLU6      |  $f(x) = \{{0} \text{ if } {x} \leq {0} \; \\ {x} \text{ if } {0} < { x } < {6}\; \\ {6} \text{ if } {x} \geq {6}\}$ |   ❌   |
-| Hardsigmoid      |  $f(x) = \{ {0} \text{ if } {x} < {-2.5} \; \\ {0.2x + 0.5} \text{ if } {-2.5} \leq { x } \leq {2.5} \; \\ {1} \text{ if } {x} > {2.5} \}$ |   ❌   |
+| Hardtanh      |  $f(x) = \{\text{max-val,} \text{ if } {x} > \text{max-val } \quad \text{;} \quad \text{min-val,} \text{ if } {x} < \text{min-val } \quad \text{;} \quad {x,} \text{ otherwise }\}$ |   ❌   |
+| ReLU6      |  $f(x) = \{{0} \text{ if } {x} \leq {0} \quad \text{;} \quad {x} \text{ if } {0} < { x } < {6} \quad \text{;} \quad {6} \text{ if } {x} \geq {6}\}$ |   ❌   |
+| Hardsigmoid      |  $f(x) = \{ {0} \text{ if } {x} < {-2.5} \quad \text{;} \quad {0.2x + 0.5} \text{ if } {-2.5} \leq { x } \leq {2.5} \quad \text{;} \quad {1} \text{ if } {x} > {2.5} \}$ |   ❌   |
 | SiLU      |  $f(x) = \frac{x}{1 + e^{-x}}$ |   ❌   |
 | Mish      |  $f(x) = {x} \cdot \text{tanh}(\text{softplus(x)})\; \ \ \text{ where : } \text{softplus(x)} = \ln{(1 + e^{x})}$ |   ❌   |
-| Hardswish      |  $f(x) = \frac{{x} \cdot \text{ReLU6}{(x + 3)}}{6} \;  \ \ \text{  where :  } \text{  ReLU6(x)} = \text{min(max({0, x}), {6})}$ |   ❌   |
-| ELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0}\ \ \; \ \ \alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
-| CELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0}\ \ \; \ \ \alpha({e^\frac{x}{\alpha} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
-| SELU      |  $f(x) = \{ \lambda{x} \text{ if }{x} \geq {0}\ \ \; \ \ \lambda\alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
+| Hardswish      |  $f(x) = \frac{{x} \cdot \text{ReLU6}{(x + 3)}}{6} \quad \text{;} \quad \text{  where :  } \text{  ReLU6(x)} = \text{min(max({0, x}), {6})}$ |   ❌   |
+| ELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0} \quad \text{;} \quad \alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
+| CELU      |  $f(x) = \{ {x} \text{ if }{x} \geq {0} \quad \text{;} \quad \alpha({e^\frac{x}{\alpha} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
+| SELU      |  $f(x) = \{ \lambda{x} \text{ if }{x} \geq {0} \quad \text{;} \quad  \lambda\alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
 | GLU  (Gated Linear Unit)    |  $\text{GLU}(X) = A \odot \sigma(B)$ |   ❌   |
 |          | where: ${X}$ is the input tensor, split into two equal parts ${A}$ and ${B}$; ${A}$ and ${B}$ represent the two halves of ${X}$; $\sigma(B)$ is the sigmoid activation function applied element-wise to ${B}$ and ⊙ denotes the element-wise (Hadamard) product. |      |
 | GELU (Gaussian Error Linear Unit)      |  $\text{GELU}(x) = x \cdot \Phi(x) \quad \text{where} \quad \Phi(x) = \frac{1}{2} \left[ 1 + \text{erf}\left( \frac{x}{\sqrt{2}} \right) \right]$ |   ❌   |
