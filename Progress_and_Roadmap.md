@@ -156,7 +156,7 @@ i.	Activations
 | Hardtanh      |  $f(x) = \{\text{max-val,} \text{ if } {x} > \text{max-val } \quad \text{;} \quad \text{min-val,} \text{ if } {x} < \text{min-val } \quad \text{;} \quad {x,} \text{ otherwise }\}$ |   ❌   |
 | ReLU6      |  $f(x) = \min(\max(0, x), 6) \quad {:} \quad f(x) = \{{0} \text{ if } {x} \leq {0} \quad \text{;} \quad {x} \text{ if } {0} < { x } < {6} \quad \text{;} \quad {6} \text{ if } {x} \geq {6}\}$ |   ❌   |
 | Hardsigmoid      |  $f(x) = \min(\max(0, 0.2x + 0.5), 1) \quad {:} \quad f(x) = \{ {0} \text{ if } {x} < {-2.5} \quad \text{;} \quad {0.2x + 0.5} \text{ if } {-2.5} \leq { x } \leq {2.5} \quad \text{;} \quad {1} \text{ if } {x} > {2.5} \}$ |   ❌   |
-| SiLU (Sigmoid Linear Unit)     |  $f(x) = {x}\cdot\sigmoid(x) \quad {:} \quad f(x) = \frac{x}{1 + e^{-x}}$ |   ❌   |
+| SiLU (Sigmoid Linear Unit)     |  $f(x) = {x}\cdot\sigma(x) \quad {:} \quad f(x) = \frac{x}{1 + e^{-x}}$ |   ❌   |
 | Mish      |  $f(x) = {x} \cdot \text{tanh}(\text{softplus(x)}) \quad \text{;} \quad  \text{ where : } \text{softplus(x)} = \ln{(1 + e^{x})}$ |   ❌   |
 | Hardswish      |  $f(x) = \frac{{x} \cdot \text{ReLU6}{(x + 3)}}{6} \quad \text{;} \quad \text{  where :  } \text{  ReLU6(x)} = \text{min(max({0, x}), {6})}$ |   ❌   |
 | ELU (Exponential Linear Unit)     |  $f(x) = \{ {x} \text{ if }{x} \geq {0} \quad \text{;} \quad \alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
@@ -199,7 +199,7 @@ ii.	Activations Derivative
 | ReLU6      |  $f(x) = \min(\max(0, x), 6) \quad {:} \quad f(x) = \{{0} \text{ if } {x} \leq {0} \quad \text{;} \quad {x} \text{ if } {0} < { x } < {6} \quad \text{;} \quad {6} \text{ if } {x} \geq {6}\}$ |   ❌   |
 | Hardsigmoid      |  $f(x) = \min(\max(0, 0.2x + 0.5), 1) \quad {:} \quad f(x) = \{ {0} \text{ if } {x} < {-2.5} \quad \text{;} \quad {0.2x + 0.5} \text{ if } {-2.5} \leq { x } \leq {2.5} \quad \text{;} \quad {1} \text{ if } {x} > {2.5} \}$ |   ❌   |
 | SiLU (Sigmoid Linear Unit)     |  $f(x) = {x}\cdot\sigmoid(x) \quad {:} \quad f(x) = \frac{x}{1 + e^{-x}}$ |   ❌   |
-| Mish      |  $f'(x) = \tanh{(\text{softplus}(x))} + {x} \cdot {(1 - \tanh^{2}(\text{softplus}(x)))} \cdot \sigmoid(x)$ |   ❌   |
+| Mish      |  $f'(x) = \tanh{(\text{softplus}(x))} + {x} \cdot {(1 - \tanh^{2}(\text{softplus}(x)))} \cdot \sigma(x)$ |   ❌   |
 | Hardswish      |  $f'(x) = {0} \text{ if } < {-3} \quad \text{;} \quad \frac{2x + 3}{6} \text{ if } {-3} \leq {x} \leq {3} \quad \text{;} \quad {1} \text{ if } {x} > {3}$ |   ❌   |
 | ELU (Exponential Linear Unit)     |  $f'(x) = \{ {1} \text{ if }{x} \geq {0} \quad \text{;} \quad \alpha({e^{x}}) \text{ if } {x} < {0}\}$ |   ❌   |
 | CELU (Continously Differentiable Exponential Linear Unit)     |  $f'(x) = \{ {1} \text{ if }{x} \geq {0} \quad \text{;} \quad ({e^\frac{x}{\alpha}}) \text{ if } {x} < {0}\}$ |   ❌   |
