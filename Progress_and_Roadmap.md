@@ -193,6 +193,33 @@ ii.	Activations Derivative
 | softmax_backward   |  $\frac{\partial}{\partial{x_k}} = \text{Softmax}{(x_k)}(1 - \text{Softmax}{(x_k)})_{(diagonal: )} cross-element\ requires\ Jacobian$  |   ❌   |
 | LeakyReLU_backward| $\frac{\partial}{\partial{x}} = \bigg( \frac{{1 }\ \text{ if } {x }  \geq\ 0} {\alpha  \text{ if } {x } \le 0}$                                   |   ✅   |
 | mean_backward      |  $\frac{\partial{\mu}}{\partial{x_i}} = \frac{1}{n}$ |   ✅   |
+| Threshold      | $f(x) = \{ 1 \text{ if } x \geq \theta \quad \text{;} \quad {0} \text{ if } x < \theta \}$ |   ❌   |
+| RReLU      |  $f(x) = \{ {x} \text{ if } x \geq \theta \quad \text{;} \quad \text{r}\cdot{x} \text{ if } x < \theta \}$ |   ❌   |
+| Hardtanh      |  $f(x) = \{\text{max-val,} \text{ if } {x} > \text{max-val } \quad \text{;} \quad \text{min-val,} \text{ if } {x} < \text{min-val } \quad \text{;} \quad {x,} \text{ otherwise }\}$ |   ❌   |
+| ReLU6      |  $f(x) = \min(\max(0, x), 6) \quad {:} \quad f(x) = \{{0} \text{ if } {x} \leq {0} \quad \text{;} \quad {x} \text{ if } {0} < { x } < {6} \quad \text{;} \quad {6} \text{ if } {x} \geq {6}\}$ |   ❌   |
+| Hardsigmoid      |  $f(x) = \min(\max(0, 0.2x + 0.5), 1) \quad {:} \quad f(x) = \{ {0} \text{ if } {x} < {-2.5} \quad \text{;} \quad {0.2x + 0.5} \text{ if } {-2.5} \leq { x } \leq {2.5} \quad \text{;} \quad {1} \text{ if } {x} > {2.5} \}$ |   ❌   |
+| SiLU (Sigmoid Linear Unit)     |  $f(x) = {x}\cdot\sigmoid(x) \quad {:} \quad f(x) = \frac{x}{1 + e^{-x}}$ |   ❌   |
+| Mish      |  $f(x) = {x} \cdot \text{tanh}(\text{softplus(x)}) \quad \text{;} \quad  \text{ where : } \text{softplus(x)} = \ln{(1 + e^{x})}$ |   ❌   |
+| Hardswish      |  $f(x) = \frac{{x} \cdot \text{ReLU6}{(x + 3)}}{6} \quad \text{;} \quad \text{  where :  } \text{  ReLU6(x)} = \text{min(max({0, x}), {6})}$ |   ❌   |
+| ELU (Exponential Linear Unit)     |  $f(x) = \{ {x} \text{ if }{x} \geq {0} \quad \text{;} \quad \alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
+| CELU (Continously Differentiable Exponential Linear Unit)     |  $f(x) = \{ {x} \text{ if }{x} \geq {0} \quad \text{;} \quad \alpha({e^\frac{x}{\alpha} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
+| SELU (Scale Exponential Linear Unit)     |  $f(x) = \{ \lambda{x} \text{ if }{x} \geq {0} \quad \text{;} \quad  \lambda\alpha({e^{x} - 1}) \text{ if } {x} < {0}\}$ |   ❌   |
+| GLU  (Gated Linear Unit)    |  $\text{GLU}(X) = A \odot \sigma(B)$ |   ❌   |
+|          | where: ${X}$ is the input tensor, split into two equal parts ${A}$ and ${B}$; ${A}$ and ${B}$ represent the two halves of ${X}$; $\sigma(B)$ is the sigmoid activation function applied element-wise to ${B}$ and ⊙ denotes the element-wise (Hadamard) product. |      |
+| GELU (Gaussian Error Linear Unit)      |  $\frac{\partial}{\partial x}\text{GELU}(x) = \Phi(x) + {x} \cdot \Phi(x) \quad \text{where} \quad \Phi(x) = \frac{1}{\sqrt(2\pi)}e^{-\frac{x^2}{2}}$ |   ❌   |
+|       |  GELU can be approximated as: |      |
+|       |  $\text{GELU}(x) = 0.5 \cdot x \cdot \left[ 1 + \tanh\left( \sqrt{\frac{2}{\pi}} \left( x + 0.044715 \cdot x^3 \right) \right) \right ]$ |      |
+| Hardshrink      |  $\frac{\partial \text{Hardshrink}(x)}{\partial x} = {1}  \text{if } {\|x\|} > \lambda \quad \text{;} \quad {0} \text{ if } {\|x\|} \leq \lambda$ |   ❌   |
+| LogSigmoid      |  $\frac{d}{dx} \text{LogSigmoid}(x) = \sigma(x) \cdot (1 - \sigma(x))$ |   ❌   |
+| Softplus      |  $\frac{d}{dx} \text{Softplus}(x) = \sigma(x) = \frac{1}{1 + e^{-x}}$ |   ❌   |
+| Softshrink      |  $\frac{\partial}{\partial x}\text{Softshrink}(x, \lambda) = {1} \text{ if } > \lambda  \quad \text{;} \quad {-1} \text{ if } {x} < \-lambda  \quad \text{;} \quad {0} \text{ if } {\|x\|} \leq \lambda$ |   ❌   |
+| Multi-head Attention      |  The derivatives for multi-head attention are typically computed with respect to the attention output and can involve backpropagating through the softmax and matrix multiplication steps. |   ❌   |
+| PReLU (Parametric ReLU)     |  $\frac{\partial}{\partial x} \text{PReLU}(x) = {1} \text{ if } {x} \geq {0}   \quad \text{;} \quad \alpha \text{ if } {x} < {0}$ |   ❌   |
+| Softsign      |  $\frac{d}{dx} \text{Softsign}(x) = \frac{1}{(1 + |x|)^2}$ |   ❌   |
+| Tanhshrink      |  $\frac{d}{dx} \text{TanhShrink}(x) = 1 - \text{sech}^2(x)$ |   ❌   |
+| Softmin      |  $\frac{\partial}{\partial x_i} \text{Softmin}(x_i) = -\text{Softmin}(x_i) + e^{-x_i} \sum_{j} e^{-x_j} \text{Softmin}(x_j)$ |   ❌   |
+| Softmax2d      |  $\frac{\partial}{\partial x_{i,j}} \text{Softmax2D}(x_{i,j}) = \text{Softmax2D}(x_{i,j})(1 - \text{Softmax2D}(x_{i,j}))$ |   ❌   |
+| LogSoftmax      |  $\frac{\partial}{\partial x_i} \text{LogSoftmax}(x_i) = \text{Softmax}(x_i) - \sum_{j} \text{Softmax}(x_j)$ |   ❌   |
 
 - Note: Derivative of Softmat.
     - The derivative depends on whether you’re computing it for the same index $( i = j )$ or different indices $( i \neq j )$.
