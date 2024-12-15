@@ -6,6 +6,7 @@
 #include <time.h>
 // #include <stdarg.h>
 #include <omp.h>
+#include <stdbool.h>
 
 #define MAX_PREVS 3
 
@@ -53,10 +54,10 @@ typedef enum{
     LOG
 }Op;
 
-typedef enum{
-    true,
-    false
-}bool;
+// typedef enum{
+//     true,
+//     false
+// }bool;
 
 typedef struct Tensor{
     Data data;
@@ -144,7 +145,7 @@ static int shape_index(int index, int rows, int cols){
 
 static void grad_mem_init(Tensor * self){
     if (self->dtype == FLOAT32){
-        if(!self->requires_grad){
+        if(self->requires_grad == true){
             self->grad.float32 = (float *)calloc(self->size, sizeof(float));
             if(!self->grad.float32){
                 fprintf(stderr, "Memory allocation for grad failed (FLOAT32)\n");
@@ -155,7 +156,7 @@ static void grad_mem_init(Tensor * self){
             self->grad.float32 = NULL;
         }
     }else if(self->dtype == FLOAT64){
-        if(!self->requires_grad){
+        if(self->requires_grad == true){
             self->grad.float64 = (double *)calloc(self->size, sizeof(double));
             if(!self->grad.float64){
                 fprintf(stderr, "Memory allocation for grad failed (FLOAT64)\n");
@@ -263,7 +264,7 @@ Tensor * transpose(Tensor *self){
                 int idx = shape_index(i,rows, cols);
                 int t_idx = T_index(i, rows, cols);
                 t->data.float32[t_idx] = self->data.float32[idx];
-                if(!self->requires_grad){
+                if(self->requires_grad == true){
                     t->grad.float32[t_idx]=self->grad.float32[idx];
                 }
             }
@@ -273,7 +274,7 @@ Tensor * transpose(Tensor *self){
                 int idx = shape_index(i, rows, cols);
                 int t_idx = T_index(i, rows, cols);
                 t->data.float64[t_idx] = self->data.float64[idx];
-                if(!self->requires_grad){
+                if(self->requires_grad == true){
                     t->grad.float64[t_idx] = self->grad.float64[idx];
                 }
             }
@@ -321,7 +322,7 @@ Tensor * reshape(Tensor *self, int *dims){
                 int s_idx = Reshape_index(i, new_rows, new_cols);
                 int idx = shape_index(i, old_rows, old_cols);
                 t->data.float32[s_idx] = self->data.float32[idx];
-                if(!self->requires_grad){
+                if(self->requires_grad == true){
                     t->grad.float32[s_idx] = self->grad.float32[idx];
                 }
             }
@@ -331,7 +332,7 @@ Tensor * reshape(Tensor *self, int *dims){
                 int s_idx = Reshape_index(i, new_rows, new_cols);
                 int idx = shape_index(i, old_rows, old_cols);
                 t->data.float64[s_idx] = self->data.float64[idx];
-                if(!self->requires_grad){
+                if(self->requires_grad == true){
                     t->grad.float64[s_idx] = self->grad.float64[idx];
                 }
             }
@@ -374,7 +375,7 @@ Tensor * flatten(Tensor * self){
             for (int i = 0; i < size; i++){
                 int idx = shape_index(i, rows, cols);
                 t->data.float32[i] = self->data.float32[idx];
-                if(!self->requires_grad){
+                if(self->requires_grad == true){
                     t->grad.float32[i] = self->grad.float32[idx];
                 }
             }
@@ -383,7 +384,7 @@ Tensor * flatten(Tensor * self){
             for (int i = 0; i < size; i++){
                 int idx = shape_index(i, rows, cols);
                 t->data.float64[i] = self->data.float64[idx];
-                if(!self->requires_grad){
+                if(self->requires_grad == true){
                     t->grad.float64[i] = self->grad.float64[idx];
                 }
             }
@@ -641,7 +642,7 @@ void grad_init(Tensor * self){
     if(!self) return;
 
     if(self->dtype == FLOAT64){
-        if(!self->requires_grad){
+        if(self->requires_grad == true){
             for (int i = 0; i < self->size; i++){
                 int idx = shape_index(i, self->dims[0], self->dims[1]);
                 self->grad.float64[i] = 1.0;
@@ -649,7 +650,7 @@ void grad_init(Tensor * self){
         }
     }
     if(self->dtype == FLOAT32){
-        if(!self->requires_grad){
+        if(self->requires_grad == true){
             for (int i = 0; i < self->size; i++){
                 int idx = shape_index(i, self->dims[0], self->dims[1]);
                 self->grad.float32[i] = 1.0f;
@@ -667,7 +668,7 @@ Tensor * add(Tensor * t1, Tensor * t2){
         if(t1->dims[i] != t2->dims[i]) return NULL;
     }
 
-    int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
+    bool require_grad = (t1->requires_grad == true || t2->requires_grad == true) ? true : false;
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
 
     switch(t1->dtype){
@@ -705,7 +706,7 @@ Tensor * add(Tensor * t1, Tensor * t2){
 
 void add_backward(Tensor * out){
     if(!out) return;
-    if(!out->prevs[0]->requires_grad){
+    if(out->prevs[0]->requires_grad == true){
         switch (out->dtype){
             case FLOAT32:
                 #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
@@ -725,7 +726,7 @@ void add_backward(Tensor * out){
                 return;
         }
     }
-    if(out->prevs[1]->requires_grad==true){
+    if(out->prevs[1]->requires_grad == true){
         switch (out->dtype){
             case FLOAT32:
                 #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
@@ -757,7 +758,7 @@ Tensor * sub(Tensor * t1, Tensor * t2){
         if(t1->dims[i]!= t2->dims[i]) return NULL;
     }
 
-    int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
+    bool require_grad = (t1->requires_grad == true || t2->requires_grad == true) ? true : false;
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     switch(t1->dtype){
         case FLOAT32:
@@ -847,7 +848,7 @@ Tensor * mul(Tensor *t1, Tensor *t2){
         }
     }
 
-    int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
+    bool require_grad = (t1->requires_grad == true || t2->requires_grad == true ) ? true : false;
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     switch(t1->dtype){
         case FLOAT32:
@@ -938,7 +939,7 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
     if(t1->dims[1]!= t2->dims[0] || t1->dtype != t2->dtype){
         return NULL;
     }
-    int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
+    bool require_grad = (t1->requires_grad == true  || t2->requires_grad == true ) ? true : false;
     Tensor * t = tensor(NULL, t1->dtype, dims, require_grad);
     if(!t) return NULL;
     switch(t1->dtype){
@@ -1051,7 +1052,7 @@ Tensor * Div( Tensor * t1, Tensor *t2){
         if(t1->dims[i]!= t2->dims[i]) return NULL;
     }
 
-    int require_grad = (!t1->requires_grad || !t2->requires_grad) ? true : false;
+    bool require_grad = (t1->requires_grad == true  || t2->requires_grad == true ) ? true : false;
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
 
@@ -1131,7 +1132,7 @@ void Div_backward(Tensor *out){
 
 Tensor* Pow(Tensor *t1, double exponent){
     if(!t1)return NULL;
-    int require_grad = (!t1->requires_grad)? true: false;
+    bool require_grad = (t1->requires_grad == true )? true: false;
 
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
@@ -1209,7 +1210,7 @@ void Pow_backward(Tensor * out){
 
 Tensor * Exp(Tensor *t1){
     if(!t1) return NULL;
-    int require_grad = (!t1->requires_grad)? true: false;
+    bool require_grad = (t1->requires_grad == true )? true: false;
     Tensor *t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
 
@@ -1276,7 +1277,7 @@ void Exp_backward(Tensor * out){
 
 Tensor * relu(Tensor *t1){
     if(!t1) return NULL;
-    int require_grad = (!t1->requires_grad)? true: false;
+    bool require_grad = (t1->requires_grad == true )? true: false;
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
     switch(t1->dtype){
@@ -1335,7 +1336,7 @@ void relu_backward(Tensor * out){
 
 Tensor * leaky_relu(double negative_slope, Tensor *t1){
     if(!t1) return NULL;
-    int require_grad = (!t1->requires_grad)? true: false;
+    bool require_grad = (t1->requires_grad == true )? true: false;
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
     switch(t1->dtype){
@@ -1398,7 +1399,7 @@ void leaky_relu_backward(Tensor * out){
 
 Tensor * Tanh(Tensor * t1){
     if(!t1) return NULL;
-    int require_grad = (!t1->requires_grad)? true : false;
+    bool require_grad = (t1->requires_grad == true )? true : false;
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
 
@@ -1412,14 +1413,12 @@ Tensor * Tanh(Tensor * t1){
         case FLOAT64:
             #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
             for(int i=0; i<t1->size; i++){
-                int i = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float64[i] = (exp(2*t1->data.float64[i]) - 1) / (exp(2*t1->data.float64[i]) + 1);
             }
             break;
         case INT:
             #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
             for(int i=0; i<t1->size; i++){
-                int i = shape_index(i, t1->dims[0], t1->dims[1]);
                 t->data.float32[i] = (exp(2*t1->data.Int[i]) - 1) / (exp(2*t1->data.Int[i]) + 1);
             }
             break;
@@ -1465,7 +1464,7 @@ void Tanh_backward(Tensor * out){
 
 Tensor * Sigmoid(Tensor * t1){
     if(!t1) return NULL;
-    int require_grad = (!t1->requires_grad)? true:false;
+    bool require_grad = (t1->requires_grad == true )? true:false;
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
 
@@ -1526,15 +1525,15 @@ void Sigmoid_backward(Tensor * out){
     }
 }
 
-Tensor * softmax(Tensor *t1){
+Tensor * softmax(Tensor *t1, int dim){
     if(!t1) return NULL;
-    int require_grad = (!t1->requires_grad)? true : false;
+    bool require_grad = (t1->requires_grad == true)? true : false;
     Tensor * t = tensor(NULL, t1->dtype, t1->dims, require_grad);
     if(!t) return NULL;
 
-    float s_float = 0.0f;
+    
     float max_val_float;
-    double s_double = 0.0;
+    // double s_double = 0.0;
     double max_val_double;
     float *ex_float = (float *)malloc(t1->size * sizeof(float));
     double *ex_double = (double *)malloc(t1->size * sizeof(double));
@@ -1553,14 +1552,40 @@ Tensor * softmax(Tensor *t1){
                     max_val_float = t1->data.float32[i];
                 }
             }
+            if (dim == 1)
+            {
+                for( int i = 0; i<t1->dims[0]; i++)
+                {
+                    float s_float = 0.0f;
+                    for (int j = 0; j < t1->dims[1]; j++)
+                    {
+                        ex_float[i * t1->dims[1] + j] = expf(t1->data.float32[i * t1->dims[1] + j] - max_val_float);
+                        s_float += ex_float[i*t1->dims[1] + j]; 
+                    }
 
-            for( int i = 0; i<t1->size; i++){
-                ex_float[i] = expf(t1->data.float32[i] - max_val_float);
-                s_float += ex_float[i];
-            }
+                    for (int j = 0; j < t1->dims[1]; j++)
+                    {
+                        t->data.float32[i * t1->dims[1] + j] = ex_float[i * t1->dims[1] + j] / s_float;
+                    }
+                    
+                }
+            }else if (dim == 0)
+            {
+                for( int j = 0; j<t1->dims[1]; j++)
+                {   
+                    float s_float = 0.0f;
+                    for (int i = 0; i < t1->dims[0]; i++)
+                    {
+                        ex_float[i*t1->dims[1] + j] = expf(t1->data.float32[i * t1->dims[1] + j] - max_val_float);
+                        s_float += ex_float[i*t1->dims[1] + j];
+                    }
 
-            for(int i = 0; i<t1->size; i++){
-                t->data.float32[i] = ex_float[i] / s_float;
+                    for (int i = 0; i < t1->dims[0]; i++)
+                    {
+                        t->data.float32[i * t1->dims[1] + j] = ex_float[i * t1->dims[1] + j] / s_float;
+                    }
+                    
+                }
             }
             free(ex_float);
             break;
@@ -1578,14 +1603,39 @@ Tensor * softmax(Tensor *t1){
                     max_val_double = t1->data.float64[i];
                 }
             }
+            if (dim == 1)
+            {
+                for (int i = 0; i < t1->dims[0]; i++)
+                {
+                    double s_double = 0.0;
+                    for (int j = 0; j < t1->dims[1]; j++)
+                    {
+                        ex_double[i * t1->dims[1] + j] = exp(t1->data.float64[i * t1->dims[1] + j] - max_val_double);
+                        s_double += ex_double[i * t1->dims[1] + j];
+                    }
 
-            for( int i = 0; i<t1->size;i++){
-                ex_double[i] = exp(t1->data.float64[i] - max_val_double);
-                s_double += ex_double[i];
+                    for (int j = 0; j < t1->dims[1]; j++)
+                    {
+                        t1->data.float64[i * t1->dims[1] + j] = ex_double[i * t1->dims[1] + j] / s_double;
+                    }  
+                }  
             }
+            else if (dim == 0)
+            {
+                for (int j = 0; j < t1->dims[1]; j++)
+                {
+                    double s_double = 0.0;
+                    for (int i = 0; i < t1->dims[0]; i++)
+                    {
+                        ex_double[i * t1->dims[1] + j] = exp(t1->data.float64[i * t1->dims[1] + j] - max_val_double);
+                        s_double += ex_double[i * t1->dims[1] + j];
+                    }
 
-            for(int i = 0; i<t1->size; i++){
-                t->data.float64[i] = ex_double[i] / s_double;
+                    for (int i = 0; i < t1->dims[0]; i++)
+                    {
+                        t1->data.float64[i * t1->dims[1] + j] = ex_double[i * t1->dims[1] + j] / s_double;
+                    }
+                }  
             }
             free(ex_double);
             break;
@@ -1612,30 +1662,34 @@ Tensor * softmax(Tensor *t1){
 void softmax_backward(Tensor *out){
     if(!out) return;
 
-    if(!out->requires_grad){
+    if(out->requires_grad == true ){
         switch(out->prevs[0]->dtype){
             case FLOAT32:
-                for( int i = 0; i<out->prevs[0]->dims[0]; i++){
+                for( int i = 0; i < out->prevs[0]->dims[0]; i++)
+                {
                     for (int j = 0; j < out->prevs[0]->dims[1]; j++)
                     {
                         if (i != j)
                         {
-                            out->prevs[0]->grad.float32[i*out->prevs[0]->dims[1] + j] += -(out->prevs[0]->data.float32[i] * out->prevs[0]->data.float32[j]) * out->grad.float32[i*out->prevs[0]->dims[1] + j];
-                        }else{
-                            out->prevs[0]->grad.float32[i*out->prevs[0]->dims[1] + j] += out->prevs[0]->data.float32[i] * (1 - out->prevs[0]->data.float32[i]) * out->grad.float32[i*out->prevs[0]->dims[1] + j];
+                            out->prevs[0]->grad.float32[i * out->prevs[0]->dims[1] + j] += -(out->prevs[0]->data.float32[i * out->prevs[0]->dims[1] + j] * out->prevs[0]->data.float32[i * out->prevs[0]->dims[1] + j]) * out->grad.float32[i * out->prevs[0]->dims[1] + j];
+                        }else if(i == j)
+                        {
+                            out->prevs[0]->grad.float32[i * out->prevs[0]->dims[1] + j] += out->prevs[0]->data.float32[i * out->prevs[0]->dims[1] + j] * (1 - out->prevs[0]->data.float32[i * out->prevs[0]->dims[1] + j]) * out->grad.float32[i * out->prevs[0]->dims[1] + j];
                         } 
                     }
                 }
                 break;
             case FLOAT64:
-                for( int i = 0; i<out->prevs[0]->dims[0]; i++){
+                for( int i = 0; i<out->prevs[0]->dims[0]; i++)
+                {
                     for (int j = 0; j < out->prevs[0]->dims[1]; j++)
                     {
                         if (i != j)
                         {
-                            out->prevs[0]->grad.float64[i*out->prevs[0]->dims[1] + j] += -(out->prevs[0]->data.float64[i] * out->prevs[0]->data.float64[j]) * out->grad.float64[i*out->prevs[0]->dims[1] + j];
-                        }else{
-                            out->prevs[0]->grad.float64[i*out->prevs[0]->dims[1] + j] += out->prevs[0]->data.float64[i] * (1 - out->prevs[0]->data.float64[i]) * out->grad.float64[i*out->prevs[0]->dims[1] + j];
+                            out->prevs[0]->grad.float64[i * out->prevs[0]->dims[1] + j] += -(out->prevs[0]->data.float64[i * out->prevs[0]->dims[1] + j] * out->prevs[0]->data.float64[i * out->prevs[0]->dims[1] + j]) * out->grad.float64[i * out->prevs[0]->dims[1] + j];
+                        }else if(i == j)
+                        {
+                            out->prevs[0]->grad.float64[i * out->prevs[0]->dims[1] + j] += out->prevs[0]->data.float64[i * out->prevs[0]->dims[1] + j] * (1 - out->prevs[0]->data.float64[i * out->prevs[0]->dims[1] + j]) * out->grad.float64[i * out->prevs[0]->dims[1] + j];
                         } 
                     }
                 }
@@ -1651,7 +1705,7 @@ void softmax_backward(Tensor *out){
 
 Tensor * sum(Tensor * t1){
     if(!t1) return NULL;
-    int require_grad = (!t1->requires_grad)? true : false;
+    bool require_grad = (t1->requires_grad == true )? true : false;
     Tensor *t=tensor(NULL, t1->dtype, (int[]){1}, require_grad);
     if (!t) return NULL;
 
@@ -1694,7 +1748,7 @@ Tensor * sum(Tensor * t1){
 
 void sum_backward(Tensor * out){
     if (!out) return;
-    if (!out->requires_grad)
+    if (out->requires_grad == true )
     {
         switch (out->dtype)
         {
@@ -1721,7 +1775,7 @@ void sum_backward(Tensor * out){
 
 Tensor * mean(Tensor * t1){
     if(!t1) return NULL;
-    int require_grad = (!t1->requires_grad)? true : false;
+    bool require_grad = (t1->requires_grad == true )? true : false;
     Tensor *t = tensor(NULL, t1->dtype, (int[]){1}, require_grad);
     if(!t) return NULL;
 
@@ -1822,7 +1876,7 @@ Tensor *MSELoss(Tensor * yTrue, Tensor * yPred){
         }
     }
 
-    int require_grad = (!yPred->requires_grad)? true : false;
+    bool require_grad = (yPred->requires_grad == true )? true : false;
 
     Tensor *t = tensor(NULL, yPred->dtype, (int[]){1}, require_grad);
     if(!t){
@@ -1923,7 +1977,7 @@ Tensor * MAELoss(Tensor * yTrue, Tensor * yPred){
         } 
     }
 
-    int required_grad = (!yPred->requires_grad)? true : false;
+    bool required_grad = (yPred->requires_grad == true )? true : false;
 
     Tensor * t = tensor(NULL, yPred->dtype, (int[]){1}, required_grad);
     if (!t)
@@ -2117,7 +2171,7 @@ void print(Tensor* t){
         }
         printf("]\n\n");
         if(t->dtype==FLOAT32){
-            if (!t->requires_grad){
+            if (t->requires_grad == true ){
                 printf("  grads: [");
                 for (int i = 0; i < t->size; i++){
                     int row = i/cols;
@@ -2145,7 +2199,7 @@ void print(Tensor* t){
             printf("None\n");
             }
         } else if(t->dtype==FLOAT64){
-            if (!t->requires_grad){
+            if (t->requires_grad == true ){
                 printf("  grads: [");
                 for (int i = 0; i < t->size; i++){
                     int row = i/cols;
@@ -2190,7 +2244,7 @@ void print(Tensor* t){
         }
         printf("]\n\n");
         if(t->dtype == FLOAT32){
-            if (!t->requires_grad){
+            if (t->requires_grad == true ){
                 printf("  grads: [");
                 for (int i = 0; i < t->size; i++){
                     printf("%.4e", t->grad.float32[i]);
@@ -2204,7 +2258,7 @@ void print(Tensor* t){
             printf("None\n");
             }
         }else if(t->dtype == FLOAT64){
-            if (!t->requires_grad){
+            if (t->requires_grad == true ){
                 printf("  grads: [");
                 for (int i = 0; i < t->size; i++){
                     printf("%.4e", t->grad.float64[i]);
