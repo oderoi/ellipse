@@ -1,4 +1,4 @@
-#include "torch.h"
+#include "nan.h"
 
 int main(){
 
