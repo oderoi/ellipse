@@ -25,7 +25,7 @@ This guide assumes you have no prior knowledge of C, C++, PyTorch or any other l
 First you have to download nan library from GitHub.
 
 ```C
-git clone https://github.com/oderoi/nanoTorch.git
+git clone https://github.com/oderoi/nan.git
 ```
 
 Then create a working directory in your machine/Laptop folder, open **nanoTorch** and copy `torch.h` and pest it in your folder you created. Then create a `new_file` that you will use to code your project.
@@ -61,3 +61,28 @@ So you might being asking yourself what the heck is that, don't sweet , let's se
     * `(int[]){2, 3}`: is the array dimension. As well here `(int[])` is the data type of the dimension array ( and Yes, I just say array again, because array data and dimension are both representade using array) and `{2, 3}` is the dimension itself.
     <!-- * `2`: this number represent rank of our Tensor, simply put, if dimesion is of two dimensions like `{2, 3}` then rank will be 2 aswell and if dimension if just one dimension like `{3}` then the rank will be `1`. -->
     * `true`: this boolean tell us that this `Tensor` will carry gradients of it's variable, during back propagation. So it might be `true` or `false`, depending on weither you want to calculate gradiant correspond of the `Tensor`.
+
+### Tensor for different data types
+
+**int**
+
+```c
+Tensor *x = tensor((int[]){1,2,3,4}, INT, (int[]){2, 2}, false);
+
+print(x);
+```
+
+*Run*
+```c
+gcc nameOfFile.c -lm
+```
+
+*output*
+```c
+Tensor {
+  dtype: int
+  dims:  [2, 2]
+  data:  [[1, 2],
+	      [3, 4]]
+}
+```

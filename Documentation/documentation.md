@@ -24,7 +24,7 @@ Welcome to the nan documentation. This page is for those who are really want to 
 To get this library in your local machine, you can download it from GitHub. See...
 
 ```bash
-git clone https://github.com/oderoi/nanoTorch.git 
+git clone  https://github.com/oderoi/nan.git
 ```
 
 This library is created in C and it has no frontend yet, so you will use C to use it.
@@ -34,7 +34,7 @@ This library is created in C and it has no frontend yet, so you will use C to us
 The one thing you will need to import is **torch.h** header.
 
 ```C
-#include  "torch.h"
+#include  "nan.h"
 ```
 In C we don't use `import` like in Python, we use `#include`.
 
