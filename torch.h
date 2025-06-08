@@ -469,7 +469,7 @@ Tensor * zeros(DType dtype, int * dims, bool requires_grad){
     return t;
 }
     
-Tensor * ones(DType dtype, int * dims, bool requires_grad) {
+Tensor *ones(DType dtype, int * dims, bool requires_grad) {
     Tensor *t = tensor(NULL, dtype, dims, requires_grad);
     if(!t) return NULL;
     //Fill with ones based on dtype
@@ -1144,7 +1144,7 @@ Tensor* Pow(Tensor *t1, double exponent){
         case FLOAT32:
             // #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
             for(int i=0; i<t1->size; i++){
-                t->data.float32[i] = powf(t1->data.float32[i], (float )exponent);
+                t->data.float32[i] = powf(t1->data.float32[i], (float)exponent);
             }
             break;
 
@@ -1157,8 +1157,12 @@ Tensor* Pow(Tensor *t1, double exponent){
 
         case INT:
             // #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
+            Tensor *t2 = ones(t1->dtype, t1->dims, require_grad);
             for (int i = 0; i < t1->size; i++){
-                t->data.Int[i] =(int)pow((double)t1->data.Int[i], exponent);
+                for (int j = 0; j < (int)exponent; j++) {    
+                    t2->data.Int[i] *= (int)t1->data.Int[i];
+                }
+                t->data.Int[i] = t2->data.Int[i];
             }
             // if (!t1->requires_grad)
             // {
@@ -1191,7 +1195,7 @@ void Pow_backward(Tensor * out){
             if(out->prevs[0]->requires_grad==true){
                 // #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
                 for (int i = 0; i < out->prevs[0]->size; i++){
-                    out->prevs[0]->grad.float32[i] += out->grad.float32[i] * (float)out->extra * powf(out->prevs[0]->data.float32[i], ((float)out->extra-1));
+                    out->prevs[0]->grad.float32[i] += out->grad.float32[i] * ((float)out->extra * powf(out->prevs[0]->data.float32[i],(float)out->extra-1));
                 }
             }
             break;
@@ -1200,7 +1204,7 @@ void Pow_backward(Tensor * out){
             if(out->prevs[0]->requires_grad==true){
                 // #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
                 for (int i = 0; i < out->prevs[0]->size; i++){
-                    out->prevs[0]->grad.float64[i] += out->grad.float64[i] * out->extra * pow(out->prevs[0]->data.float64[i], (out->extra-1));
+                    out->prevs[0]->grad.float64[i] += out->grad.float64[i] * out->extra * pow(out->prevs[0]->data.float64[i],(double)out->extra-1);
                 }
             }
             break;
@@ -1448,7 +1452,7 @@ void Tanh_backward(Tensor * out){
         case FLOAT32:
             // #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
             for(int i=0; i<out->prevs[0]->size; i++){
-                out->prevs[0]->grad.float32[i] += (1 - pow(out->data.float32[i], 2)) * out->grad.float32[i];
+                out->prevs[0]->grad.float32[i] += (1 - powf(out->data.float32[i], 2)) * out->grad.float32[i];
             }
             break;
         case FLOAT64:
@@ -1476,7 +1480,7 @@ Tensor * Sigmoid(Tensor * t1){
         case FLOAT32:
             // #pragma omp parallel for simd //multithreading or Parallelize the loop with SIMD
             for(int i=0; i<t1->size; i++){
-                t->data.float32[i] = 1 / (1 + exp(-t1->data.float32[i]));
+                t->data.float32[i] = 1 / (1 + expf(-t1->data.float32[i]));
             }
             break;
         case FLOAT64:
