@@ -24,7 +24,7 @@ This guide assumes you have no prior knowledge of C, C++, PyTorch or any other l
 
 First you have to download nan library from GitHub.
 
-```C
+```bash
 git clone https://github.com/oderoi/nan.git
 ```
 
@@ -73,16 +73,76 @@ print(x);
 ```
 
 *Run*
-```c
+```bash
 gcc nameOfFile.c -lm
+
+./a.out
 ```
 
 *output*
-```c
+```bash
 Tensor {
   dtype: int
   dims:  [2, 2]
   data:  [[1, 2],
 	      [3, 4]]
+}
+```
+
+**float32**
+
+```c
+Tensor *y = tensor((float[]){1,2,3,4,5,6}, FLOAT32, (int[]){2, 2}, true);
+
+print(y);
+```
+
+*Run*
+```bash
+gcc nameOfFile.c -lm
+
+./a.out
+```
+
+*output*
+```bash
+Tensor {
+  dtype: float32
+  dims:  [3, 2]
+  data:  [[1.0000, 2.0000],
+	      [3.0000, 4.0000],
+	      [5.0000, 6.0000]]
+
+  grads: [[0.0000e+00, 0.0000e+00],
+	      [0.0000e+00, 0.0000e+00],
+	      [0.0000e+00, 0.0000e+00]]
+}
+```
+
+**float64 / double**
+
+```c
+Tensor *x = tensor((double[]){1,2,3,4,5,6,7,8}, FLOAT64, (int[]){2, 4}, true);
+
+print(x);
+```
+
+*Run*
+```bash
+gcc nameOfFile.c -lm
+
+./a.out
+```
+
+*output*
+```bash
+Tensor {
+  dtype: float64
+  dims:  [2, 4]
+  data:  [[1.0000, 2.0000, 3.0000, 4.0000],
+	      [5.0000, 6.0000, 7.0000, 8.0000]]
+
+  grads: [[0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00],
+	      [0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00]]
 }
 ```
