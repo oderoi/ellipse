@@ -5,7 +5,7 @@
   <img alt="ellipse logo" src="/imgs/ellipse.png" width="50%" height="50%">
 </picture>
 
-Ellipse: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
+**Ellipse**: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
 
 <h3>
 

@@ -5,7 +5,7 @@
   <img alt="ellipse logo" src="/imgs/ellipse.png" width="50%" height="50%">
 </picture>
 
-Ellipse: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
+**Ellipse**: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
 
 <h3>
 
@@ -17,9 +17,9 @@ Ellipse: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karp
 
 ---
 
-<h1 align='center'><b>nan Documentation</b></h1>
+<h1 align='center'><b>Ellipse Documentation</b></h1>
 
-Welcome to the ellipse documentation. This page is for those who are really want to make a change in AI, if it is you, you are welcome.
+Welcome to the **ellipse** documentation. This page is for those who are really want to make a change in AI, if it is you, you are welcome.
 
 To get this library in your local machine, you can download it from GitHub. See...
 
