@@ -54,7 +54,7 @@
 
 #### Getting Started
 
-This repository includes setup instructions, usage examples, and documentation to help you dive into developing with *ellipe*. Explore the source code to understand how core deep learning concepts like tensor operations and automatic differentiation are implemented.
+This repository includes setup instructions, usage examples, and documentation to help you dive into developing with **ellipse**. Explore the source code to understand how core deep learning concepts like tensor operations and automatic differentiation are implemented.
 
 #### Contributing
 
