@@ -5,7 +5,7 @@
   <img alt="ellipse logo" src="/imgs/ellipse.png" width="50%" height="50%">
 </picture>
 
-Ellipse: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
+**Ellipse**: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
 
 
 <h3>
@@ -20,7 +20,7 @@ Ellipse: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karp
 
 <h1 align='center'><b>Progress and Roadmap</b></h1>
 
-Ellipse is designed to provide an accessible, low-level deep learning framework with a focus on simplicity and modularity. Here’s a roadmap showcasing its primary components and future progress milestones:
+**Ellipse** is designed to provide an accessible, low-level deep learning framework with a focus on simplicity and modularity. Here’s a roadmap showcasing its primary components and future progress milestones:
 
 ## Core Components
 

@@ -7,7 +7,7 @@
   <img alt="ellipse logo" src="/imgs/ellipse.png" width="50%" height="50%">
 </picture>
 
-ellipse: Something between [tinygrad](https://tinygrad.org/), [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
+**ellipse**: Something between [tinygrad](https://tinygrad.org/), [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
 
 <h3>
 
@@ -34,28 +34,28 @@ ellipse: Something between [tinygrad](https://tinygrad.org/), [PyTorch](https://
 </p> -->
 
 <p>
-Ellipse is a lightweight, minimalistic high-performance numerical computing library for deep learning written in pure C, designed to bring essential neural network functionalities to low-resource environments. Inspired by projects like minigrad, tinygrad, XLA and PyTorch, Nano aims to provide a foundational toolkit for machine learning enthusiasts, embedded developers, and researchers who want to experiment with deep learning concepts in an efficient, resource-conscious manner.
+**Ellipse** is a lightweight, minimalistic high-performance numerical computing library for deep learning written in pure C, designed to bring essential neural network functionalities to low-resource environments. Inspired by projects like minigrad, tinygrad, XLA and PyTorch, **Ellipse** aims to provide a foundational toolkit for machine learning enthusiasts, embedded developers, and researchers who want to experiment with deep learning concepts in an efficient, resource-conscious manner.
 </p>
 
 #### Key Features
 
--  Lightweight Design: Focused on simplicity, Nano provides core deep learning operations without heavy dependencies.
--  Pure C Implementation: Built entirely in C, Nano is designed to be portable and optimized for low-level manipulation.
+-  Lightweight Design: Focused on simplicity, **ellipse** provides core deep learning operations without heavy dependencies.
+-  Pure C Implementation: Built entirely in C, **ellipse** is designed to be portable and optimized for low-level manipulation.
 -  Gradient Calculation: Includes basic automatic differentiation to support backpropagation for training models.
 -  Flexible Tensor Operations: Supports fundamental tensor operations required for deep learning.
 -  Modular Architecture: Easy to extend or modify, allowing you to explore and experiment with new layers, optimizers, and more.
 
 #### Who is This For?
 
-NanoTorch is perfect for those looking to:
+**Ellipse** is perfect for those looking to:
 -  Understand the inner workings of a deep learning library from the ground up.
 -  Run simple neural networks in resource-limited environments.
 -  Prototype and test custom ML operations in C.
 
 #### Getting Started
 
-This repository includes setup instructions, usage examples, and documentation to help you dive into developing with Nano. Explore the source code to understand how core deep learning concepts like tensor operations and automatic differentiation are implemented.
+This repository includes setup instructions, usage examples, and documentation to help you dive into developing with *ellipe*. Explore the source code to understand how core deep learning concepts like tensor operations and automatic differentiation are implemented.
 
 #### Contributing
 
-Ellipse is open for contributions! Whether you’re fixing bugs, adding new features, or experimenting with optimizations, we welcome your input.
+**Ellipse** is open for contributions! Whether you’re fixing bugs, adding new features, or experimenting with optimizations, we welcome your input.
