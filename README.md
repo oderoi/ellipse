@@ -7,7 +7,7 @@
   <img alt="ellipse logo" src="/imgs/ellipse.png" width="50%" height="50%">
 </picture>
 
-**ellipse**: Something between [tinygrad](https://tinygrad.org/), [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
+**Ellipse**: Something between [tinygrad](https://tinygrad.org/), [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
 
 <h3>
 
@@ -34,7 +34,7 @@
 </p> -->
 
 <p>
-**Ellipse** is a lightweight, minimalistic high-performance numerical computing library for deep learning written in pure C, designed to bring essential neural network functionalities to low-resource environments. Inspired by projects like minigrad, tinygrad, XLA and PyTorch, **Ellipse** aims to provide a foundational toolkit for machine learning enthusiasts, embedded developers, and researchers who want to experiment with deep learning concepts in an efficient, resource-conscious manner.
+Ellipse is a lightweight, minimalistic high-performance numerical computing library for deep learning written in pure C, designed to bring essential neural network functionalities to low-resource environments. Inspired by projects like minigrad, tinygrad, XLA and PyTorch, Ellipse aims to provide a foundational toolkit for machine learning enthusiasts, embedded developers, and researchers who want to experiment with deep learning concepts in an efficient, resource-conscious manner.
 </p>
 
 #### Key Features
