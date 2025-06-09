@@ -1,11 +1,11 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="/imgs/nan/16.svg">
-  <img alt="tiny corp logo" src="/imgs/nan/nan.svg" width="50%" height="50%">
+  <source media="(prefers-color-scheme: light)" srcset="/imgs/ellipse.png">
+  <img alt="ellipse logo" src="/imgs/ellipse.png" width="50%" height="50%">
 </picture>
 
-Nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
+Ellipse: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
 
 
 <h3>
@@ -20,7 +20,7 @@ Nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpath
 
 <h1 align='center'><b>Progress and Roadmap</b></h1>
 
-Nano is designed to provide an accessible, low-level deep learning framework with a focus on simplicity and modularity. Here’s a roadmap showcasing its primary components and future progress milestones:
+Ellipse is designed to provide an accessible, low-level deep learning framework with a focus on simplicity and modularity. Here’s a roadmap showcasing its primary components and future progress milestones:
 
 ## Core Components
 

@@ -3,11 +3,11 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="/imgs/nan/16.svg">
-  <img alt="tiny corp logo" src="/imgs/nan/nan.svg" width="50%" height="50%">
+  <source media="(prefers-color-scheme: light)" srcset="/imgs/ellipse.png">
+  <img alt="ellipse logo" src="/imgs/ellipse.png" width="50%" height="50%">
 </picture>
 
-nano: Something between [tinygrad](https://tinygrad.org/), [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
+ellipse: Something between [tinygrad](https://tinygrad.org/), [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
 
 <h3>
 
@@ -34,7 +34,7 @@ nano: Something between [tinygrad](https://tinygrad.org/), [PyTorch](https://git
 </p> -->
 
 <p>
-Nano is a lightweight, minimalistic high-performance numerical computing library for deep learning written in pure C, designed to bring essential neural network functionalities to low-resource environments. Inspired by projects like minigrad, tinygrad, XLA and PyTorch, Nano aims to provide a foundational toolkit for machine learning enthusiasts, embedded developers, and researchers who want to experiment with deep learning concepts in an efficient, resource-conscious manner.
+Ellipse is a lightweight, minimalistic high-performance numerical computing library for deep learning written in pure C, designed to bring essential neural network functionalities to low-resource environments. Inspired by projects like minigrad, tinygrad, XLA and PyTorch, Nano aims to provide a foundational toolkit for machine learning enthusiasts, embedded developers, and researchers who want to experiment with deep learning concepts in an efficient, resource-conscious manner.
 </p>
 
 #### Key Features
@@ -58,4 +58,4 @@ This repository includes setup instructions, usage examples, and documentation t
 
 #### Contributing
 
-Nano is open for contributions! Whether you’re fixing bugs, adding new features, or experimenting with optimizations, we welcome your input.
+Ellipse is open for contributions! Whether you’re fixing bugs, adding new features, or experimenting with optimizations, we welcome your input.

@@ -1,11 +1,11 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="/imgs/nan/16.svg">
-  <img alt="tiny corp logo" src="/imgs/nan/nan.svg" width="50%" height="50%">
+  <source media="(prefers-color-scheme: light)" srcset="/imgs/ellipse.png">
+  <img alt="ellipse logo" src="/imgs/ellipse.png" width="50%" height="50%">
 </picture>
 
-nano: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
+Ellipse: Something between [PyTorch](https://github.com/pytorch/pytorch) , [karpathy/micrograd](https://github.com/karpathy/micrograd) and [XLA](https://openxla.org/xla). Maintained by [nileAGI](https://www.nileagi.com/).
 
 <h3>
 
@@ -25,24 +25,24 @@ This guide assumes you have no prior knowledge of C, C++, PyTorch or any other l
 First you have to download nan library from GitHub.
 
 ```bash
-git clone https://github.com/oderoi/nan.git
+git clone https://github.com/oderoi/ellipse.git
 ```
 
-Then create a working directory in your machine/Laptop folder, open **nanoTorch** and copy `torch.h` and pest it in your folder you created. Then create a `new_file` that you will use to code your project.
+Then create a working directory in your machine/Laptop folder, open **ellipse** and copy `ellipse.h` and pest it in your folder you created. Then create a `new_file` that you will use to code your project.
 
 Then open the `new_file` in your fevorite code editor. and start to code.
 
 Start by importing the library.
 
 ```c
-#inlude "torch.h"
+#inlude "ellipse.h"
 ```
 
 Now you are set.
 
 ## Tensor
 
-Tensors are the base data structure in **nan**. They are like multi-dimensional array of a specific data type. All higher-level operations in **nan** operate on these tensors.
+Tensors are the base data structure in **ellipse**. They are like multi-dimensional array of a specific data type. All higher-level operations in **ellipse** operate on these tensors.
 
 Tensor can be created from existing data.
 
