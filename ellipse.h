@@ -210,7 +210,7 @@ Tensor * tensor(void * data, DType dtype, int * dims,  bool requires_grad){
 
     switch(dtype){
         case FLOAT32:
-            t->data.float32 = (float*) aligned_alloc(64, t->size * sizeof(float));
+            t->data.float32 = (float*) calloc(t->size , sizeof(float));
             if(!t->data.float32){
                 fprintf(stderr, "Memory allocation for data failed\n");
                 t_free(t);
@@ -222,7 +222,7 @@ Tensor * tensor(void * data, DType dtype, int * dims,  bool requires_grad){
             grad_mem_init(t);
             break;
         case FLOAT64:
-            t->data.float64 = (double*) alligned_alloc(64, t->size * sizeof(double));
+            t->data.float64 = (double*) calloc(t->size, sizeof(double));
             if(!t->data.float64){
                 fprintf(stderr, "Memory allocation for data failed\n");
                 t_free(t);
@@ -952,11 +952,7 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
     if(!t) return NULL;
     switch(t1->dtype){
         case FLOAT32:
-#ifdef NAN_USE_OPENBLAS
-            cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, l, 1.0f, t1->data.float32, l, t2->data.float32, n, 0.0f, t->data.float32, n);
-
-#else
-            #pragma omp parallel for collapse(2)
+//            #pragma omp parallel for collapse(2)
             for (int i = 0; i < m; i++) {
                 for (int j = 0; j < n; j++) {
                     float sum = 0.0f;
@@ -966,34 +962,26 @@ Tensor * matmul(Tensor *t1, Tensor *t2){
                     t->data.float32[i * n + j] = sum;
                 }
             }
-#endif
             break;
-        case FLOAT64:
-#ifdef NAN_USE_OPENBLAS
-            cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, l, 1.0, t1->data.float64, l, t2->data.float64, n, 0.0, t->data.float64, n);
-#else
-            // Blocked matmul with OpenMP
-            #pragma omp parallel for collapse(2) 
-            for(int i=0; i<m; i++){
-                for(int j=0; j<n; j++){
-                    double sum = 0.0;
-                    for(int k=0; k<l; k++){
-                        sum += t1->data.float64[i * l + k] * t2->data.float64[k * n + j];
-                        // for (int ii = i; ii < i + BLOCK_SIZE && ii < m; ii++) {
-                            // for(int jj = j; jj < j + BLOCK_SIZE && jj < n; jj++) {
-                                // double sum = 0.0;
-                                // for(int kk = k; kk < k + BLOCK_SIZE && kk < l; kk++) {
-                                     // sum += t1->data.float64[ii*l + kk] * t2->data.float64[kk*n + jj];
 
-                                    // }
-                                // }
-                            // }
-                        // t->data.float64[ii*n + jj] += sum;
+        case FLOAT64
+//            #pragma omp parallel for collapse(2) 
+            for(int i = 0; i < m; i++){
+                for(int j = 0; j < n; j++){
+                    for(int k = 0; k < l; k++){
+                         for (int ii = i; ii < i + BLOCK_SIZE && ii < m; ii++) {
+                             for(int jj = j; jj < j + BLOCK_SIZE && jj < n; jj++) {
+                                 double sum = 0.0;
+                                 for(int kk = k; kk < k + BLOCK_SIZE && kk < l; kk++) {
+                                      sum += t1->data.float64[ii*l + kk] * t2->data.float64[kk*n + jj];
+
+                                     }
+                                 }
+                             }
+                         t->data.float64[ii * n + jj] += sum;
                     }
-                    t->data.float64[i * n + j] = sum;
                 }
             }
-#endif
 
             break;
         case INT:

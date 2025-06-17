@@ -13,6 +13,8 @@
 
 </h3>
 
+[**Announcement Blog Post**](https://www.nileagi.com/blog/ellipse-introduction)
+
 </div>
 
 ---
